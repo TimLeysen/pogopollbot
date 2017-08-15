@@ -43,6 +43,7 @@ https://github.com/kolar/telegram-poll-bot
 from datetime import datetime
 import logging
 
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError)
 from telegram.ext import Updater, CommandHandler
 from telegram.ext import MessageHandler, Filters
@@ -71,7 +72,6 @@ def parse_args(update, args): # returns raid boss : str, start_time : str, locat
     # not needed and would require code changes when raid bosses change!
     # if not pokedex.is_raid_boss(args[0]):
         # raise Exception('{} is not a raid boss')
-    # raid_boss = args[0]
 
     start_time = args[1]
     try:
@@ -87,26 +87,28 @@ def parse_args(update, args): # returns raid boss : str, start_time : str, locat
 
 def start_poll(bot, update, args):
     try:
-        raid_boss, start_time, location = parse_args(update, args)
+        pokemon, start_time, location = parse_args(update, args)
     except ValueError as e:
         logging.info(e)
         return
 
-    # Create poll
-    # post raid boss, time, pokestop in channel_id
-    # give users the following options: Ik ben aanwezig op dat uur, Ik wil de boss later doen, Ik kom niet
-    
-    # poll layout:
-    # icon? <boss>
-    # Location: ...
-    # Time: ...
-    # poll results
-
+    creator = update.message.from_user.name
     logging.info('{} created a poll with args {}'.format(update.message.from_user.name, ','.join(args)))
     update.message.reply_text('poll created!')
+
+    msg = pokemon + '\n' + start_time + '\n' + location
+    msg += '\n\nPoll created by {}'.format(creator)
+
+    menu = [[
+        InlineKeyboardButton("Aanwezig.", callback_data='1'),
+        InlineKeyboardButton("Volgende groep.", callback_data='2')
+    ]]
+    reply_markup = InlineKeyboardMarkup(menu)
+    bot.send_message(chat_id=channel_id, text=msg, reply_markup=reply_markup)
+    #bot.send_message(chat_id=channel_id, text=msg)#, reply_markup=reply_markup)
     
-    msg = 'test'
-    bot.send_message(chat_id=channel_id, text=msg)
+    #msg = 'test'
+    #bot.send_message(chat_id=channel_id, text=msg)
 
 def close_poll(bot, update, args):
     # TODO
