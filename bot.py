@@ -38,6 +38,8 @@ https://github.com/python-telegram-bot/python-telegram-bot/wiki/Code-snippets#bu
 from datetime import datetime
 import logging
 
+# from telegram import InlineQueryResultArticle, InputTextMessageContent
+# from telegram.ext import InlineQueryHandler
 from telegram.ext import Updater, CommandHandler
 from telegram.ext import MessageHandler, Filters
 
@@ -88,15 +90,24 @@ def create_poll(bot, update, args):
         
     # bot.send_message(chat_id=update.message.chat_id, text=msg)
 
-# on_message:
-    # 1. store question
-    # 2. store description (button to skip)
-    # 3. store first answer
-    # 4. etc.
-    
-# def hello(bot, update):
-    # update.message.reply_text(
-        # 'Hello {}'.format(update.message.from_user.first_name))
+# def inline_caps(bot, update):
+    # print('inline_caps')
+    # query = update.inline_query.query
+    # print(query)
+    # if not query:
+        # return
+    # results = list()
+    # results.append(
+        # InlineQueryResultArticle(
+            # id=query.upper(),
+            # title='Caps',
+            # input_message_content=InputTextMessageContent(query.upper())
+        # )
+    # )
+    # bot.answer_inline_query(update.inline_query.id, results)
+
+def unknown_command(bot, update):
+    bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
         
@@ -105,7 +116,10 @@ dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('poll', create_poll, pass_args=True))
-#dispatcher.add_handler(MessageHandler(Filters.text, echo))
+
+# dispatcher.add_handler(InlineQueryHandler(inline_caps))
+
+dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
 updater.start_polling()
 updater.idle()
