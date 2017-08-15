@@ -38,6 +38,7 @@ https://github.com/python-telegram-bot/python-telegram-bot/wiki/Code-snippets#bu
 from datetime import datetime
 import logging
 
+from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError)
 # from telegram import InlineQueryResultArticle, InputTextMessageContent
 # from telegram.ext import InlineQueryHandler
 from telegram.ext import Updater, CommandHandler
@@ -108,6 +109,31 @@ def create_poll(bot, update, args):
 
 def unknown_command(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
+    
+def error_callback(bot, update, error):
+    try:
+        logging.error(error)
+        raise error
+    except Unauthorized:
+        # remove update.message.chat_id from conversation list
+        return
+    except BadRequest:
+        # handle malformed requests - read more below!
+        return
+    except TimedOut:
+        # handle slow connection problems
+        return
+    except NetworkError:
+        # handle other connection problems
+        return
+    except ChatMigrated as e:
+        # the chat_id of a group has changed, use e.new_chat_id instead
+        return
+    except TelegramError:
+        # handle all other telegram related errors
+        return
+
+
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
         
@@ -116,10 +142,10 @@ dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('poll', create_poll, pass_args=True))
-
 # dispatcher.add_handler(InlineQueryHandler(inline_caps))
-
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
+
+dispatcher.add_error_handler(error_callback)
 
 updater.start_polling()
 updater.idle()
