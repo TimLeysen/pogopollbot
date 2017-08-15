@@ -33,6 +33,11 @@ update.message.reply_text("I'm sorry Dave I'm afraid I can't do that.")
 
 build a menu with buttons:
 https://github.com/python-telegram-bot/python-telegram-bot/wiki/Code-snippets#build-a-menu-with-buttons
+
+
+EXAMPLES:
+---------
+https://github.com/kolar/telegram-poll-bot
 """
 
 from datetime import datetime
@@ -45,6 +50,9 @@ from telegram.ext import Updater, CommandHandler
 from telegram.ext import MessageHandler, Filters
 
 import pokedex
+
+# channel to which to post poll
+channel_id = '@PoGoWaaslandRaids'
 
 def start(bot, update):
     # ask user to send question
@@ -77,7 +85,7 @@ def check_args(update, args): # returns raid boss : str, timer : datetime.time
 
     return pokemon, start_time
 
-def create_poll(bot, update, args):
+def start_poll(bot, update, args):
     try:
         raid_boss, start_time = check_args(update, args)
     except ValueError as e:
@@ -85,11 +93,20 @@ def create_poll(bot, update, args):
         return
 
     # Create poll
-    update.message.reply_text('creating poll!')
+    # post raid boss, time, pokestop in channel_id
+    # give users the following options: Ik ben aanwezig op dat uur, Ik wil de boss later doen, Ik kom niet
+    
+    # poll layout:
+    # icon? <boss>
+    # Location: ...
+    # Time: ...
+    # poll results
+
     logging.info('{} created a poll with args {}'.format(update.message.from_user.name, ','.join(args)))
-        
-        
-    # bot.send_message(chat_id=update.message.chat_id, text=msg)
+    update.message.reply_text('poll created!')
+    
+    msg = 'test'
+    bot.send_message(chat_id=channel_id, text=msg)
 
 # def inline_caps(bot, update):
     # print('inline_caps')
@@ -107,6 +124,14 @@ def create_poll(bot, update, args):
     # )
     # bot.answer_inline_query(update.inline_query.id, results)
 
+def close_poll(bot, update, args):
+    # TODO
+    return
+
+def list_polls(bot, update):
+    # TODO
+    return
+    
 def unknown_command(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
     
@@ -140,8 +165,9 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 updater = Updater('427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg')
 dispatcher = updater.dispatcher
 
-dispatcher.add_handler(CommandHandler('start', start))
-dispatcher.add_handler(CommandHandler('poll', create_poll, pass_args=True))
+dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
+dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
+dispatcher.add_handler(CommandHandler('list', list_polls))
 # dispatcher.add_handler(InlineQueryHandler(inline_caps))
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
