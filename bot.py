@@ -44,8 +44,6 @@ from datetime import datetime
 import logging
 
 from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError)
-# from telegram import InlineQueryResultArticle, InputTextMessageContent
-# from telegram.ext import InlineQueryHandler
 from telegram.ext import Updater, CommandHandler
 from telegram.ext import MessageHandler, Filters
 
@@ -110,22 +108,6 @@ def start_poll(bot, update, args):
     msg = 'test'
     bot.send_message(chat_id=channel_id, text=msg)
 
-# def inline_caps(bot, update):
-    # print('inline_caps')
-    # query = update.inline_query.query
-    # print(query)
-    # if not query:
-        # return
-    # results = list()
-    # results.append(
-        # InlineQueryResultArticle(
-            # id=query.upper(),
-            # title='Caps',
-            # input_message_content=InputTextMessageContent(query.upper())
-        # )
-    # )
-    # bot.answer_inline_query(update.inline_query.id, results)
-
 def close_poll(bot, update, args):
     # TODO
     return
@@ -170,7 +152,6 @@ dispatcher = updater.dispatcher
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('list', list_polls))
-# dispatcher.add_handler(InlineQueryHandler(inline_caps))
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
 dispatcher.add_error_handler(error_callback)
