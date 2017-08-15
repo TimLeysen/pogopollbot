@@ -58,11 +58,11 @@ def start(bot, update):
     # ask user to send question
     update.message.reply_text('Steven stinkt!')
 
-def check_args(update, args): # returns raid boss : str, timer : datetime.time
-    if len(args) != 2:
-        msg = 'Incorrect format. Usage: /poll <raid-boss> <start-time>. For example: /poll Moltres 13:00'
+def parse_args(update, args): # returns raid boss : str, start_time : str, location : str
+    if len(args) < 3:
+        msg = 'Incorrect format. Usage: /start <raid-boss> <start-time> <location>. For example: /start Moltres 13:00 Park Sint-Niklaas'
         update.message.reply_text(msg)
-        raise ValueError('Incorrect format: expected two arguments: raid boss, start time')
+        raise ValueError('Incorrect format: expected three arguments: raid boss, start time, location')
 
     pokemon = args[0]
     if not pokedex.name_exists(pokemon):
@@ -77,17 +77,19 @@ def check_args(update, args): # returns raid boss : str, timer : datetime.time
 
     start_time = args[1]
     try:
-        start_time = datetime.strptime(start_time, '%H:%M').time()
+        datetime.strptime(start_time, '%H:%M').time()
     except:
         msg = 'Incorrect time format. Expected HH:MM. For example: 13:00'
         update.message.reply_text(msg)
         raise ValueError('Incorrect time format: {}'.format(start_time))
 
-    return pokemon, start_time
+    location = ' '.join(args[2:])
+
+    return pokemon, start_time, location
 
 def start_poll(bot, update, args):
     try:
-        raid_boss, start_time = check_args(update, args)
+        raid_boss, start_time, location = parse_args(update, args)
     except ValueError as e:
         logging.info(e)
         return
