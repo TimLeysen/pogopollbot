@@ -46,6 +46,7 @@ https://github.com/kolar/telegram-poll-bot
 
 from datetime import datetime
 import logging
+import sched, time
 
 from telegram import CallbackQuery
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -110,7 +111,7 @@ def start_poll(bot, update, args):
         return
     creator = update.message.from_user.name
     poll = Poll(pokemon, start_time, location, creator)
-    
+
     msg = '{} created a poll: {}'.format(update.message.from_user.name, ', '.join(args))
     logging.info(msg)
     bot.send_message(chat_id=update.message.chat_id, text=msg)
@@ -121,6 +122,28 @@ def start_poll(bot, update, args):
                            parse_mode='HTML')
     polls[msg.message_id] = poll
 
+    s = sched.scheduler(time.time, time.sleep)
+    # don't care about error at midnight
+    start_time = datetime.strptime(start_time, '%H:%M')
+    now = datetime.now()
+    seconds_left = (start_time - now).seconds
+    seconds_left = 5 # FOR TESTING
+    s.enter(seconds_left, 1, close_poll_on_timer, argument=(bot, msg.message_id,))
+    s.run(blocking=False) # doesn't work with blocking = False...
+   
+def close_poll_on_timer(bot, message_id):
+    #TODO duplicate code with close_poll!
+    print('Automatically closing poll {}'.format(polls[message_id].description()))
+    polls[message_id].set_closed()
+    poll = polls[message_id]
+    bot.edit_message_text(chat_id=config.output_channel_id, message_id=message_id,
+                          text=poll.message(), parse_mode='HTML')
+    
+    chat_id = config.input_chat_id
+    msg = 'Poll {} was closed automatically'.format(poll.description())
+    logging.info(msg)
+    bot.send_message(chat_id=chat_id, text=msg)
+    
 def close_poll(bot, update, args):
     if not authorized(update):
         return
