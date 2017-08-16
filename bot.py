@@ -104,16 +104,15 @@ def start_poll(bot, update, args):
         return
 
     try:
-        pokemon, time, location = parse_args(update, args)
+        pokemon, start_time, location = parse_args(update, args)
     except ValueError as e:
         logging.info(e)
         return
     creator = update.message.from_user.name
-    poll = Poll(pokemon, time, location, creator)
+    poll = Poll(pokemon, start_time, location, creator)
     
     msg = '{} created a poll: {}'.format(update.message.from_user.name, ', '.join(args))
     logging.info(msg)
-    #update.message.reply_text(msg)
     bot.send_message(chat_id=update.message.chat_id, text=msg)
 
     msg = bot.send_message(chat_id=config.output_channel_id,
@@ -139,6 +138,7 @@ def close_poll(bot, update, args):
     chat_id = update.message.chat_id
     description = '{} {}'.format(index, poll.description())
     msg = '{} closed poll {}'.format(update.message.from_user.name, description)
+    logging.info(msg)
     bot.send_message(chat_id=chat_id, text=msg)    
     
     return
@@ -151,9 +151,11 @@ def delete_all_polls(bot, update):
     # TODO: ask for confirmation!
     for message_id in polls.keys():
         bot.delete_message(chat_id=chat_id, message_id=message_id)
+    polls.clear()
 
     chat_id = update.message.chat_id
     msg = '{} deleted all polls.'.format(update.message.from_user.name)
+    logging.info(msg)
     bot.send_message(chat_id=chat_id, text=msg)
 
 def delete_poll(bot, update, args):
@@ -186,6 +188,7 @@ def delete_poll(bot, update, args):
     
     chat_id = update.message.chat_id
     msg = '{} deleted poll {}'.format(update.message.from_user.name, description)
+    logging.info(msg)
     bot.send_message(chat_id=chat_id, text=msg)
     
 def list_polls(bot, update):
@@ -197,6 +200,10 @@ def list_polls(bot, update):
     for message_id, poll in sorted(polls.items()):
         msg += '{} {}\n'.format(i, poll.description())
         i += 1
+
+    if not msg:
+        msg = 'No polls found'
+
     bot.send_message(chat_id=update.message.chat_id, text=msg)
 
 def test(bot, update):
@@ -204,14 +211,19 @@ def test(bot, update):
         return
 
     start_poll(bot, update, ['zapdos', '13:00', 'TEST'])
-    # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
-    # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
+    start_poll(bot, update, ['moltres', '13:00', 'TEST'])
+    start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
 
 def vote_callback(bot, update):
     query = update.callback_query
     msg_id = query.message.message_id
     
-    polls[msg_id].add_vote(query.from_user.name, int(query.data))
+    try:
+        polls[msg_id].add_vote(query.from_user.name, int(query.data))
+    except KeyError as e:
+        logging.info('User tried to vote for an old poll that is still open')
+        return
+        
     poll = polls[msg_id]
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
@@ -247,7 +259,9 @@ def error_callback(bot, update, error):
         return
 
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(#filename='log_info.log',
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
         
 updater = Updater(config.bot_token)
 dispatcher = updater.dispatcher
