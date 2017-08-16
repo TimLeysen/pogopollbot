@@ -12,6 +12,7 @@ BotFather /setcommands
 help - shows the help message
 start - starts a poll
 close - closes a poll
+open - reopens a closed poll
 delete - deletes a poll
 deleteall - deletes all polls
 list - lists all polls
@@ -129,17 +130,44 @@ def close_poll(bot, update, args):
     message_id = sorted(polls)[index]
     polls[message_id].set_closed()
     poll = polls[message_id]
-    bot.edit_message_text(chat_id=chat_id, message_id=message_id,
-                          text=poll.message(), parse_mode='HTML')
+     # remove keyboard
+    bot.edit_message_text(chat_id=chat_id,
+                          message_id=message_id,
+                          text=poll.message(),
+                          parse_mode='HTML')
     
     chat_id = update.message.chat_id
     description = '{} {}'.format(index, poll.description())
     msg = '{} closed poll {}'.format(update.message.from_user.name, description)
     logging.info(msg)
-    bot.send_message(chat_id=chat_id, text=msg)    
+    bot.send_message(chat_id=chat_id, text=msg)
     
     return
 
+def open_poll(bot, update, args): # TO DO code duplication, see close_poll
+    if not authorized(update):
+        return
+
+    # TO DO: check if digit and in range
+    index = int(args[0])
+    print(index)
+
+    chat_id = config.output_channel_id
+    message_id = sorted(polls)[index]
+    polls[message_id].set_open()
+    poll = polls[message_id]
+    bot.edit_message_text(chat_id=chat_id,
+                          message_id=message_id,
+                          text=poll.message(),
+                          reply_markup=poll.reply_markup(),
+                          parse_mode='HTML')
+    
+    chat_id = update.message.chat_id
+    description = '{} {}'.format(index, poll.description())
+    msg = '{} reopened poll {}'.format(update.message.from_user.name, description)
+    logging.info(msg)
+    bot.send_message(chat_id=chat_id, text=msg)    
+    
 def delete_all_polls(bot, update):
     if not authorized(update):
         return
@@ -215,6 +243,10 @@ def help(bot, update):
           'Closes a poll. You can see the poll ids by typing /list.\n'\
           'Example: /close 0\n\n'\
           \
+          '/open <id>\n'\
+          'Reopens a closed poll. You can see the poll ids by typing /list.\n'\
+          'Example: /open 0\n\n'\
+          \
           '/delete <id>\n'\
           'Deletes a poll. You can see the poll ids by typing /list.\n'\
           'Example: /delete 0\n\n'\
@@ -288,6 +320,7 @@ dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
+dispatcher.add_handler(CommandHandler('open', open_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))

@@ -114,3 +114,6 @@ class Poll:
         
     def set_closed(self):
         self.closed = True
+        
+    def set_open(self):
+        self.closed = False
