@@ -127,6 +127,19 @@ def close_poll(bot, update, args):
         return
     return
 
+def delete_all_polls(bot, update):
+    if not authorized(update):
+        return
+    
+    chat_id = config.output_channel_id
+    # TODO: ask for confirmation!
+    for message_id in polls.keys():
+        bot.delete_message(chat_id=chat_id, message_id=message_id)
+
+    chat_id = update.message.chat_id
+    msg = '{} deleted all polls.'.format(update.message.from_user.name)
+    bot.send_message(chat_id=chat_id, text=msg)
+
 def list_polls(bot, update):
     if not authorized(update):
         return
@@ -180,6 +193,7 @@ dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
+dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
