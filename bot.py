@@ -61,14 +61,21 @@ from poll import Poll
 output_channel_id = '@PoGoWaaslandRaids'
 
 # group where users can create polls
-input_group_id = '@' # TODO
+input_chat_id = -228155825 # PoGo Waasland Bot
+
+bot_token = '427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg'
 
 # key: Message, value: Poll
 polls = {}
 
+def authorized(update):
+    if update.message.chat_id != input_chat_id:
+        print('Unauthorized access from {}'.format(update.message.from_user.name))
+        return False
+    return True
+
 def start(bot, update):
-    # ask user to send question
-    update.message.reply_text('Steven stinkt!')
+    update.message.reply_text('Start message TODO')
 
 def parse_args(update, args): # returns raid boss : str, start_time : str, location : str
     if len(args) < 3:
@@ -100,6 +107,9 @@ def parse_args(update, args): # returns raid boss : str, start_time : str, locat
     return pokemon, start_time, location
 
 def start_poll(bot, update, args):
+    if not authorized(update):
+        return
+
     try:
         pokemon, time, location = parse_args(update, args)
     except ValueError as e:
@@ -119,11 +129,13 @@ def start_poll(bot, update, args):
     polls[msg.message_id] = poll
 
 def close_poll(bot, update, args):
-    # TODO
+    if not authorized(update):
+        return
     return
 
 def list_polls(bot, update):
-    # TODO
+    if not authorized(update):
+        return
     return
 
 def vote_callback(bot, update):
@@ -169,7 +181,7 @@ def error_callback(bot, update, error):
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
         
-updater = Updater('427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg')
+updater = Updater(bot_token)
 dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
