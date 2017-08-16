@@ -38,17 +38,23 @@ https://github.com/python-telegram-bot/python-telegram-bot/wiki/Code-snippets#bu
 EXAMPLES:
 ---------
 https://github.com/kolar/telegram-poll-bot
+
+
 """
+
+## !!! https://github.com/python-telegram-bot/python-telegram-bot/blob/master/examples/inlinekeyboard.py
 
 from datetime import datetime
 import logging
 
+from telegram import CallbackQuery
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError)
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
 
 import pokedex
+from poll import Poll
 
 # channel to which to post poll
 channel_id = '@PoGoWaaslandRaids'
@@ -87,25 +93,24 @@ def parse_args(update, args): # returns raid boss : str, start_time : str, locat
 
 def start_poll(bot, update, args):
     try:
-        pokemon, start_time, location = parse_args(update, args)
+        pokemon, time, location = parse_args(update, args)
     except ValueError as e:
         logging.info(e)
         return
-
     creator = update.message.from_user.name
+    poll = Poll(pokemon, time, location, creator)
+    
     logging.info('{} created a poll with args {}'.format(update.message.from_user.name, ','.join(args)))
     update.message.reply_text('poll created!')
 
-    msg = pokemon + '\n' + start_time + '\n' + location
-    msg += '\n\nPoll created by {}'.format(creator)
-
-    menu = [[
-        InlineKeyboardButton("Aanwezig.", callback_data='1'),
-        InlineKeyboardButton("Volgende groep.", callback_data='2')
-    ]]
-    reply_markup = InlineKeyboardMarkup(menu)
-    bot.send_message(chat_id=channel_id, text=msg, reply_markup=reply_markup)
+    bot.send_message(chat_id=channel_id,
+                     text=poll.message(),
+                     reply_markup=poll.reply_markup(),
+                     parse_mode='HTML')
     #bot.send_message(chat_id=channel_id, text=msg)#, reply_markup=reply_markup)
+    
+    # https://core.telegram.org/bots/api#callbackquery
+    # https://core.telegram.org/bots/api#message
     
     #msg = 'test'
     #bot.send_message(chat_id=channel_id, text=msg)
@@ -117,7 +122,16 @@ def close_poll(bot, update, args):
 def list_polls(bot, update):
     # TODO
     return
-    
+
+def vote_callback(bot, update):
+    query = update.callback_query
+    # bot.edit_message_text(text="Selected option: %s" % query.data,
+                          # chat_id=query.message.chat_id,
+                          # message_id=query.message.message_id)
+    # update vote lists!
+    # make sure user cannot vote twice
+    # update count and names in message
+
 def unknown_command(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
     
@@ -145,7 +159,6 @@ def error_callback(bot, update, error):
         return
 
 
-
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
         
 updater = Updater('427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg')
@@ -155,6 +168,8 @@ dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('list', list_polls))
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
+
+dispatcher.add_handler(CallbackQueryHandler(vote_callback))
 
 dispatcher.add_error_handler(error_callback)
 
