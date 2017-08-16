@@ -2,6 +2,7 @@ from enum import Enum
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
+import pokedex
 
 
 class Poll:
@@ -19,6 +20,8 @@ class Poll:
 
     def __init__(self, pokemon, time, location, creator):
         self.pokemon = pokemon
+        self.img_url = 'http://floatzel.net/pokemon/black-white/sprites/images/{0}.png'\
+                        .format(pokedex.get_id(pokemon))
         self.time = time
         self.location = location
         self.creator = creator
@@ -29,9 +32,10 @@ class Poll:
     def description(self):
         return '{} {} {}{}'.format(self.pokemon, self.time,
             self.location, ' [CLOSED]' if self.closed else '')
-        
+
     def message(self):
-        msg = '<b>{} {}{}</b>\n{}\n\n'.format(self.pokemon, self.time,
+        msg = '<a href=\"{}\">&#8205;</a>\n'.format(self.img_url)
+        msg += '<b>{} {}{}</b>\n{}\n\n'.format(self.pokemon, self.time,
             ' [CLOSED]' if self.closed else '', self.location)
         for i in range(0, len(self.all_voters)):
             voters = self.all_voters[i]
