@@ -204,11 +204,10 @@ def test(bot, update):
         return
 
     start_poll(bot, update, ['zapdos', '13:00', 'TEST'])
-    start_poll(bot, update, ['moltres', '13:00', 'TEST'])
-    start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
+    # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
+    # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
 
 def vote_callback(bot, update):
-    print('vote_callback')
     query = update.callback_query
     msg_id = query.message.message_id
     

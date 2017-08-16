@@ -5,6 +5,46 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import pokedex
 
 
+class Voter:
+    def __init__(self, name):
+        self.name = name
+        self.count = 1
+
+    def add_player(self):
+        self.count +=1
+        
+class Voters:
+    def __init__(self):
+        self.voters = []
+        return
+
+    def add(self, name):
+        idx = self.__index_of(name)
+        if idx != -1:
+            self.voters[idx].add_player()
+        else:
+            self.voters.append(Voter(name))
+
+    def remove(self, name):
+        idx = self.__index_of(name)
+        if idx != -1:
+            del self.voters[idx]
+
+    def total_count(self):
+        count = 0
+        for voter in self.voters:
+            count += voter.count
+        return count
+    
+    def __index_of(self, name):
+        i = 0
+        for voter in self.voters:
+            if voter.name == name:
+                return i
+            i += 1
+        return -1
+    
+
 class Poll:
     options = ['Ik kom',
                'Ik kan pas later (volgende groep)',
@@ -27,7 +67,10 @@ class Poll:
         self.creator = creator
         self.closed = False
 
-        self.all_voters = [[],[],[]]
+        # self.present = Choice()
+        # self.later = Choice()
+        # self.not_present = Choice()
+        self.all_voters = [Voters(), Voters(), Voters()]
 
     def description(self):
         return '{} {} {}{}'.format(self.pokemon, self.time,
@@ -39,23 +82,32 @@ class Poll:
             ' [CLOSED]' if self.closed else '', self.location)
         for i in range(0, len(self.all_voters)):
             voters = self.all_voters[i]
-            msg += '<b>{}</b> [{}]\n'.format(Poll.options[i], len(voters))
+            msg += '<b>{}</b> [{}]\n'.format(Poll.options[i], voters.total_count())
             if Poll.show_names[i]:
-                for voter in voters:
-                    msg += '  {}\n'.format(voter)
+                for voter in voters.voters:
+                    suffix = ' ({})'.format(voter.count) if voter.count > 1 else ''
+                    msg += '  {}{}\n'.format(voter.name, suffix)
             msg += '\n'
 
         msg += '\nPoll created by {}'.format(self.creator)
         return msg
 
-    def add_vote(self, name, idx):
-        # feels bad
-        for i in range(0, len(self.all_voters)):
-            if name in self.all_voters[i]:
-                self.all_voters[i].remove(name)
-                break
+    def add_vote(self, name, choice):
+        # clunky but whatever
+        if choice is 0: # ik kom
+            # Multiple votes will increase a voter's player count
+            self.all_voters[0].add(name)
+            self.all_voters[1].remove(name)
 
-        self.all_voters[idx].append(name)
+        if choice is 1: # ik kan pas later
+            # Multiple votes will increase a voter's player count
+            self.all_voters[0].remove(name)
+            self.all_voters[1].add(name)
+        
+        if choice is 2: # ik kom niet (meer)
+            # don't care about these users so don't store anything
+            self.all_voters[0].remove(name)
+            self.all_voters[1].remove(name)
         
     def set_closed(self):
         self.closed = True
