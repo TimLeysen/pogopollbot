@@ -6,9 +6,9 @@ import pokedex
 
 
 class Poll:
-    options = ['Aanwezig',
-               'Ik kom pas later (volgende groep)',
-               'Niet aanwezig']
+    options = ['Ik kom',
+               'Ik kan pas later (volgende groep)',
+               'Ik kom niet']
     show_names = [True, True, False]
     
     @staticmethod
