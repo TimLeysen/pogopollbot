@@ -207,7 +207,7 @@ def help(bot, update):
           \
           '/start <pokemon> <time> <location>\n'\
           'Starts a new poll.\n'\
-          'Example: /start Snorlax 13:30 Park Sint-Niklaas.\n\n'\
+          'Example: /start Snorlax 13:30 Park Sint-Niklaas\n\n'\
           \
           '/close <id>\n'\
           'Closes a poll. You can see the poll ids by typing /list.\n'\
