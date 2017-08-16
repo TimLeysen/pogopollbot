@@ -1,3 +1,5 @@
+test_version = True
+
 # broadcast channel to which to post poll
 output_channel_id = '@PoGoWaaslandRaids'
 

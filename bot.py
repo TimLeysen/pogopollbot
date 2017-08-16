@@ -145,6 +145,9 @@ def list_polls(bot, update):
         return
     return
 
+def test(bot, update):
+    start_poll(bot, update, ['zapdos', '13:00', 'TEST'])
+
 def vote_callback(bot, update):
     print('vote_callback')
     query = update.callback_query
@@ -195,6 +198,8 @@ dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
+if config.test_version:
+    dispatcher.add_handler(CommandHandler('test', test))
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
 dispatcher.add_handler(CallbackQueryHandler(vote_callback))
