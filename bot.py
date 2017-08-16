@@ -5,44 +5,17 @@
 # https://core.telegram.org/bots/api
 
 # Introduction to the API: https://github.com/python-telegram-bot/python-telegram-bot/wiki/Introduction-to-the-API
-
-""""
-Can use inline commands e.g. @poll moltres 19:30
-Can show option to user in broadcast channel: Yes, No
-Can I remove the option when the poll is closed?
-
-Random thoughts:
-what if two users create a poll at the same time?
-"""
+# !!! https://github.com/python-telegram-bot/python-telegram-bot/blob/master/examples/inlinekeyboard.py
 
 """
-CODE SNIPPETS:
---------------
-fetch messages sent to your bot:
-updates = bot.get_updates()
-print([u.message.text for u in updates])
-
-reply to messages:
-chat_id = bot.get_updates()[-1].message.chat_id
-
-post a test message:
-bot.send_message(chat_id=chat_id, text="I'm sorry Dave I'm afraid I can't do that.")
-
-reply:
-update.message.reply_text("I'm sorry Dave I'm afraid I can't do that.")
-
-build a menu with buttons:
-https://github.com/python-telegram-bot/python-telegram-bot/wiki/Code-snippets#build-a-menu-with-buttons
-
-
-EXAMPLES:
----------
-https://github.com/kolar/telegram-poll-bot
-
-
+BotFather /setcommands
+help - shows the help message
+start - starts a poll
+close - closes a poll
+delete - deletes a poll
+deleteall - deletes all polls
+list - lists all polls
 """
-
-## !!! https://github.com/python-telegram-bot/python-telegram-bot/blob/master/examples/inlinekeyboard.py
 
 from datetime import datetime
 import logging
@@ -229,6 +202,29 @@ def list_polls(bot, update):
 
     bot.send_message(chat_id=update.message.chat_id, text=msg)
 
+def help(bot, update):
+    msg = '/help\n'\
+          'Shows this message\n\n'\
+          \
+          '/start <pokemon> <time> <location>\n'\
+          'Starts a new poll.\n'\
+          'Example: /start Snorlax 13:30 Park Sint-Niklaas.\n\n'\
+          \
+          '/close <id>\n'\
+          'Closes a poll. You can see the poll ids by typing /list.\n'\
+          'Example: /close 0\n\n'\
+          \
+          '/delete <id>\n'\
+          'Deletes a poll. You can see the poll ids by typing /list.\n'\
+          'Example: /delete 0\n\n'\
+          \
+          '/deleteall\n'\
+          'Deletes all polls.\n\n'\
+          \
+          '/list\n'\
+          'Lists all polls. Shows each poll\'s id and description.'
+    bot.send_message(chat_id=update.message.chat_id, text=msg)
+
 def test(bot, update):
     if not authorized(update):
         return
@@ -294,6 +290,8 @@ dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
+dispatcher.add_handler(CommandHandler('help', help))
+
 if config.test_version:
     dispatcher.add_handler(CommandHandler('test', test))
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
