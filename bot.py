@@ -56,8 +56,15 @@ from telegram.ext import MessageHandler, Filters
 import pokedex
 from poll import Poll
 
+# move to config!
 # channel to which to post poll
-channel_id = '@PoGoWaaslandRaids'
+output_channel_id = '@PoGoWaaslandRaids'
+
+# group where users can create polls
+input_group_id = '@' # TODO
+
+# key: Message, value: Poll
+polls = {}
 
 def start(bot, update):
     # ask user to send question
@@ -69,6 +76,7 @@ def parse_args(update, args): # returns raid boss : str, start_time : str, locat
         update.message.reply_text(msg)
         raise ValueError('Incorrect format: expected three arguments: raid boss, start time, location')
 
+    # TO DO - remove this?
     pokemon = args[0]
     if not pokedex.name_exists(pokemon):
         msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
@@ -100,20 +108,15 @@ def start_poll(bot, update, args):
     creator = update.message.from_user.name
     poll = Poll(pokemon, time, location, creator)
     
-    logging.info('{} created a poll with args {}'.format(update.message.from_user.name, ','.join(args)))
-    update.message.reply_text('poll created!')
+    msg = '{} created a poll: {}'.format(update.message.from_user.name, ', '.join(args))
+    logging.info(msg)
+    update.message.reply_text(msg)
 
-    bot.send_message(chat_id=channel_id,
-                     text=poll.message(),
-                     reply_markup=poll.reply_markup(),
-                     parse_mode='HTML')
-    #bot.send_message(chat_id=channel_id, text=msg)#, reply_markup=reply_markup)
-    
-    # https://core.telegram.org/bots/api#callbackquery
-    # https://core.telegram.org/bots/api#message
-    
-    #msg = 'test'
-    #bot.send_message(chat_id=channel_id, text=msg)
+    msg = bot.send_message(chat_id=output_channel_id,
+                           text=poll.message(),
+                           reply_markup=poll.reply_markup(),
+                           parse_mode='HTML')
+    polls[msg.message_id] = poll
 
 def close_poll(bot, update, args):
     # TODO
@@ -124,13 +127,18 @@ def list_polls(bot, update):
     return
 
 def vote_callback(bot, update):
+    print('vote_callback')
     query = update.callback_query
-    # bot.edit_message_text(text="Selected option: %s" % query.data,
-                          # chat_id=query.message.chat_id,
-                          # message_id=query.message.message_id)
-    # update vote lists!
-    # make sure user cannot vote twice
-    # update count and names in message
+    msg_id = query.message.message_id
+    
+    polls[msg_id].add_vote(query.from_user.name, int(query.data))
+    poll = polls[msg_id]
+
+    # quite slow after the first vote from a person... takes 3s or longer to update...
+    query.edit_message_text(text=poll.message(),
+                            reply_markup=poll.reply_markup(),
+                            parse_mode='HTML')
+    bot.answer_callback_query(query.id)
 
 def unknown_command(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
@@ -174,4 +182,5 @@ dispatcher.add_handler(CallbackQueryHandler(vote_callback))
 dispatcher.add_error_handler(error_callback)
 
 updater.start_polling()
+print('running!')
 updater.idle()
