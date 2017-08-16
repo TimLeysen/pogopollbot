@@ -22,14 +22,17 @@ class Poll:
         self.time = time
         self.location = location
         self.creator = creator
+        self.closed = False
 
         self.all_voters = [[],[],[]]
 
     def description(self):
-        return '{} {} {}'.format(self.pokemon, self.time, self.location)
+        return '{} {} {}{}'.format(self.pokemon, self.time,
+            self.location, ' [CLOSED]' if self.closed else '')
         
     def message(self):
-        msg = '<b>{0} {1}</b>\n{2}\n\n'.format(self.pokemon, self.time, self.location)
+        msg = '<b>{} {}{}</b>\n{}\n\n'.format(self.pokemon, self.time,
+            ' [CLOSED]' if self.closed else '', self.location)
         for i in range(0, len(self.all_voters)):
             voters = self.all_voters[i]
             msg += '<b>{}</b> [{}]\n'.format(Poll.options[i], len(voters))
@@ -49,3 +52,6 @@ class Poll:
                 break
 
         self.all_voters[idx].append(name)
+        
+    def set_closed(self):
+        self.closed = True

@@ -125,6 +125,22 @@ def start_poll(bot, update, args):
 def close_poll(bot, update, args):
     if not authorized(update):
         return
+
+    # TO DO: check if digit and in range
+    index = int(args[0])
+
+    chat_id = config.output_channel_id
+    message_id = sorted(polls)[index]
+    polls[message_id].set_closed()
+    poll = polls[message_id]
+    bot.edit_message_text(chat_id=chat_id, message_id=message_id,
+                          text=poll.message(), parse_mode='HTML')
+    
+    chat_id = update.message.chat_id
+    description = '{} {}'.format(index, poll.description())
+    msg = '{} closed poll {}'.format(update.message.from_user.name, description)
+    bot.send_message(chat_id=chat_id, text=msg)    
+    
     return
 
 def delete_all_polls(bot, update):
