@@ -100,7 +100,6 @@ def start_poll(bot, update, args):
     start_time = datetime.strptime(start_time, '%H:%M')
     now = datetime.now()
     seconds_left = (start_time - now).seconds
-    seconds_left = 5 # FOR TESTING
     s.enter(seconds_left, 1, close_poll_on_timer, argument=(bot, msg.message_id,))
     s.run(blocking=False) # doesn't work with blocking = False...
    
