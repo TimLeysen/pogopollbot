@@ -42,19 +42,21 @@ def authorized(update):
     return True
 
 def start(bot, update):
-    update.message.reply_text('Start message TODO')
+    #update.message.reply_text('Start message TODO')
+    return
 
 def parse_args(update, args): # returns raid boss : str, start_time : str, location : str
+    chat_id = config.output_channel_id
     if len(args) < 3:
         msg = 'Incorrect format. Usage: /start <raid-boss> <start-time> <location>. For example: /start Moltres 13:00 Park Sint-Niklaas'
-        update.message.reply_text(msg)
+        bot.send_message(chat_id=chat_id, text=msg)
         raise ValueError('Incorrect format: expected three arguments: raid boss, start time, location')
 
     # TO DO - remove this?
     pokemon = args[0]
     if not pokedex.name_exists(pokemon):
         msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
-        update.message.reply_text(msg)
+        bot.send_message(chat_id=chat_id, text=msg)
         raise ValueError('{} is not a Pokemon'.format(pokemon))
 
     # not needed and would require code changes when raid bosses change!
@@ -66,7 +68,7 @@ def parse_args(update, args): # returns raid boss : str, start_time : str, locat
         datetime.strptime(start_time, '%H:%M').time()
     except:
         msg = 'Incorrect time format. Expected HH:MM. For example: 13:00'
-        update.message.reply_text(msg)
+        bot.send_message(chat_id=chat_id, text=msg)
         raise ValueError('Incorrect time format: {}'.format(start_time))
 
     location = ' '.join(args[2:])
