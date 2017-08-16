@@ -53,23 +53,16 @@ from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, C
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
 
+import config
 import pokedex
 from poll import Poll
 
-# move to config!
-# channel to which to post poll
-output_channel_id = '@PoGoWaaslandRaids'
-
-# group where users can create polls
-input_chat_id = -228155825 # PoGo Waasland Bot
-
-bot_token = '427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg'
 
 # key: Message, value: Poll
 polls = {}
 
 def authorized(update):
-    if update.message.chat_id != input_chat_id:
+    if update.message.chat_id != config.input_chat_id:
         print('Unauthorized access from {}'.format(update.message.from_user.name))
         return False
     return True
@@ -122,7 +115,7 @@ def start_poll(bot, update, args):
     logging.info(msg)
     update.message.reply_text(msg)
 
-    msg = bot.send_message(chat_id=output_channel_id,
+    msg = bot.send_message(chat_id=config.output_channel_id,
                            text=poll.message(),
                            reply_markup=poll.reply_markup(),
                            parse_mode='HTML')
@@ -181,7 +174,7 @@ def error_callback(bot, update, error):
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
         
-updater = Updater(bot_token)
+updater = Updater(config.bot_token)
 dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
