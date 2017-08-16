@@ -46,6 +46,7 @@ class Voters:
     
 
 class Poll:
+    # last option is not visualized!
     options = ['Ik kom',
                'Ik kan pas later (volgende groep)',
                'Ik kom niet']
@@ -70,7 +71,7 @@ class Poll:
         # self.present = Choice()
         # self.later = Choice()
         # self.not_present = Choice()
-        self.all_voters = [Voters(), Voters(), Voters()]
+        self.all_voters = [Voters(), Voters()]
 
     def description(self):
         return '{} {} {}{}'.format(self.pokemon, self.time,
