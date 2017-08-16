@@ -113,7 +113,8 @@ def start_poll(bot, update, args):
     
     msg = '{} created a poll: {}'.format(update.message.from_user.name, ', '.join(args))
     logging.info(msg)
-    update.message.reply_text(msg)
+    #update.message.reply_text(msg)
+    bot.send_message(chat_id=update.message.chat_id, text=msg)
 
     msg = bot.send_message(chat_id=config.output_channel_id,
                            text=poll.message(),
