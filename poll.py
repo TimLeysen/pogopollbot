@@ -25,6 +25,9 @@ class Poll:
 
         self.all_voters = [[],[],[]]
 
+    def description(self):
+        return '{} {} {}'.format(self.pokemon, self.time, self.location)
+        
     def message(self):
         msg = '<b>{0} {1}</b>\n{2}\n\n'.format(self.pokemon, self.time, self.location)
         for i in range(0, len(self.all_voters)):

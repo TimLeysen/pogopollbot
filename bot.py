@@ -140,13 +140,56 @@ def delete_all_polls(bot, update):
     msg = '{} deleted all polls.'.format(update.message.from_user.name)
     bot.send_message(chat_id=chat_id, text=msg)
 
+def delete_poll(bot, update, args):
+    if not authorized(update):
+        return
+
+    if len(args) != 1:
+        print('delete_poll: wrong args')
+        #TODO print message
+        return
+
+    index = args[0]
+    if not index.isdigit():
+        print('delete_poll: no digit')
+        #TODO print message
+        return
+        
+    index = int(index)
+    if not index in range(0,len(polls)):
+        print('delete_poll: index out of range')
+        #TODO print message
+        return
+
+    chat_id = config.output_channel_id
+    message_id = sorted(polls)[index]
+    bot.delete_message(chat_id=chat_id, message_id=message_id)
+    
+    description = '{} {}'.format(index, polls[message_id].description())
+    del polls[message_id]
+    
+    chat_id = update.message.chat_id
+    msg = '{} deleted poll {}'.format(update.message.from_user.name, description)
+    bot.send_message(chat_id=chat_id, text=msg)
+    
 def list_polls(bot, update):
     if not authorized(update):
         return
-    return
+
+    msg = ''
+    i = 0
+    for message_id, poll in sorted(polls.items()):
+        msg += '{} {}\n'.format(i, poll.description())
+        i += 1
+    bot.send_message(chat_id=update.message.chat_id, text=msg)
 
 def test(bot, update):
+    if not authorized(update):
+        return
+
     start_poll(bot, update, ['zapdos', '13:00', 'TEST'])
+    start_poll(bot, update, ['moltres', '13:00', 'TEST'])
+    start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
 
 def vote_callback(bot, update):
     print('vote_callback')
@@ -196,6 +239,7 @@ dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
+dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
 if config.test_version:
