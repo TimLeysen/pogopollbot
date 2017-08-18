@@ -158,29 +158,29 @@ def close_poll(bot, update, args):
     
     return
 
-def open_poll(bot, update, args): # TO DO code duplication, see close_poll
-    if not authorized(update):
-        return
+# def open_poll(bot, update, args): # TO DO code duplication, see close_poll
+    # if not authorized(update):
+        # return
 
     # TO DO: check if digit and in range
-    index = int(args[0])
-    print(index)
+    # index = int(args[0])
+    # print(index)
 
-    chat_id = config.output_channel_id
-    message_id = sorted(polls)[index]
-    polls[message_id].set_open()
-    poll = polls[message_id]
-    bot.edit_message_text(chat_id=chat_id,
-                          message_id=message_id,
-                          text=poll.message(),
-                          reply_markup=poll.reply_markup(),
-                          parse_mode='HTML')
+    # chat_id = config.output_channel_id
+    # message_id = sorted(polls)[index]
+    # polls[message_id].set_open()
+    # poll = polls[message_id]
+    # bot.edit_message_text(chat_id=chat_id,
+                          # message_id=message_id,
+                          # text=poll.message(),
+                          # reply_markup=poll.reply_markup(),
+                          # parse_mode='HTML')
     
-    chat_id = update.message.chat_id
-    description = '{} {}'.format(index, poll.description())
-    msg = '{} reopened poll {}'.format(update.message.from_user.name, description)
-    logging.info(msg)
-    bot.send_message(chat_id=chat_id, text=msg)    
+    # chat_id = update.message.chat_id
+    # description = '{} {}'.format(index, poll.description())
+    # msg = '{} reopened poll {}'.format(update.message.from_user.name, description)
+    # logging.info(msg)
+    # bot.send_message(chat_id=chat_id, text=msg)    
     
 def delete_all_polls(bot, update):
     if not authorized(update):
@@ -356,7 +356,7 @@ logging.basicConfig(#filename='log_info.log',
 
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
-dispatcher.add_handler(CommandHandler('open', open_poll, pass_args=True))
+# dispatcher.add_handler(CommandHandler('open', open_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
