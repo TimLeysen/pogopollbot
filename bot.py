@@ -23,7 +23,7 @@ import logging
 import random
 import time
 
-from telegram import CallbackQuery
+from telegram import CallbackQuery, ChatMember
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError)
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
@@ -41,12 +41,31 @@ dispatcher = updater.dispatcher
 # key: Message, value: Poll
 polls = {}
 
-def authorized(update):
+def authorized(bot, update):
     if update.message.chat_id != config.input_chat_id:
-        print('Unauthorized access from {}'.format(update.message.from_user.name))
+        logging.warning('Unauthorized access from {} (wrong chat)'\
+            .format(update.message.from_user.name))
+        bot.send_message(chat_id=update.message.chat_id, text='Not authorized')
         return False
     return True
 
+def admin(bot, update):
+    chat_id = config.input_chat_id
+    user_id = update.message.from_user.id
+    try:
+        member = bot.get_chat_member(chat_id=chat_id, user_id=user_id)
+        # if member.status in [telegram.ChatMember.ADMINISTRATOR, telegram.ChatMember.CREATOR]:
+        if member.status in ['administrator', 'creator']:
+            print('hololo')
+            return True
+    except:
+        pass
+
+    logging.warning('Unauthorized access from {} (not an admin)'\
+        .format(update.message.from_user.name))
+    bot.send_message(chat_id=update.message.chat_id, text='Not authorized')
+    return False
+    
 def start(bot, update):
     #update.message.reply_text('Start message TODO')
     return
@@ -82,7 +101,7 @@ def parse_args(bot, update, args): # returns raid boss : str, start_time : str, 
     return pokemon, start_time, location
 
 def start_poll(bot, update, args):
-    if not authorized(update):
+    if not authorized(bot, update):
         return
 
     try:
@@ -104,7 +123,7 @@ def start_poll(bot, update, args):
     polls[msg.message_id] = poll
 
     dispatcher.run_async(close_poll_on_timer, *(bot, msg.message_id))
-    dispatcher.run_async(delete_poll_on_timer, *(bot, msg.message_id))
+    # dispatcher.run_async(delete_poll_on_timer, *(bot, msg.message_id))
    
 def close_poll_on_timer(bot, msg_id):
     poll = polls[msg_id]
@@ -118,7 +137,7 @@ def close_poll_on_timer(bot, msg_id):
     __close_poll(bot, msg_id)
 
 def close_poll(bot, update, args):
-    if not authorized(update):
+    if not authorized(bot, update):
         return
 
     # TO DO: check if digit and in range and len(args)
@@ -130,8 +149,12 @@ def close_poll(bot, update, args):
 
 def __close_poll(bot, msg_id, update=None):
     chat_id = config.output_channel_id
-    polls[msg_id].set_closed()
+    if msg_id not in polls:
+        logging.debug('Poll {} is already closed'.format(msg_id))
+        return
+
     poll = polls[msg_id]
+    del polls[msg_id]
     bot.edit_message_text(chat_id=chat_id,
                           message_id=msg_id,
                           text=poll.message(),
@@ -145,32 +168,9 @@ def __close_poll(bot, msg_id, update=None):
     logging.info(msg)
     bot.send_message(chat_id=chat_id, text=msg)
 
-# def open_poll(bot, update, args): # TO DO code duplication, see close_poll
-    # if not authorized(update):
-        # return
-
-    # TO DO: check if digit and in range
-    # index = int(args[0])
-    # print(index)
-
-    # chat_id = config.output_channel_id
-    # message_id = sorted(polls)[index]
-    # polls[message_id].set_open()
-    # poll = polls[message_id]
-    # bot.edit_message_text(chat_id=chat_id,
-                          # message_id=message_id,
-                          # text=poll.message(),
-                          # reply_markup=poll.reply_markup(),
-                          # parse_mode='HTML')
-    
-    # chat_id = update.message.chat_id
-    # description = '{} {}'.format(index, poll.description())
-    # msg = '{} reopened poll {}'.format(update.message.from_user.name, description)
-    # logging.info(msg)
-    # bot.send_message(chat_id=chat_id, text=msg)    
     
 def delete_all_polls(bot, update):
-    if not authorized(update):
+    if not authorized(bot, update) or not admin(bot, update):
         return
     
     chat_id = config.output_channel_id
@@ -185,7 +185,7 @@ def delete_all_polls(bot, update):
     bot.send_message(chat_id=chat_id, text=msg)
 
 def delete_poll(bot, update, args):
-    if not authorized(update):
+    if not authorized(bot, update) or not admin(bot, update):
         return
 
     if len(args) != 1:
@@ -208,20 +208,6 @@ def delete_poll(bot, update, args):
     msg_id = sorted(polls)[index]
     __delete_poll(bot, msg_id, update)
         
-def delete_poll_on_timer(bot, msg_id):
-    poll = polls[msg_id]
-    delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
-    if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
-        logging.info('Poll is not deleted automatically because start time is earlier than now: {}')\
-            .format(poll.description())
-        return
-
-    # delete 2 hours after start time
-    # poll information should always be available for people that want do
-    # another group later
-    # time.sleep(delta.seconds + 7200)
-    time.sleep(delta.seconds + 10)
-    __delete_poll(bot, msg_id)
 
 def __delete_poll(bot, msg_id, update=None):
     chat_id = config.output_channel_id
@@ -241,7 +227,7 @@ def __delete_poll(bot, msg_id, update=None):
         bot.send_message(chat_id=chat_id, text=msg)
 
 def list_polls(bot, update):
-    if not authorized(update):
+    if not authorized(bot, update):
         return
 
     msg = ''
@@ -283,7 +269,7 @@ def help(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=msg)
 
 def test(bot, update):
-    if not authorized(update):
+    if not authorized(bot, update):
         return
 
     pokemon = random.choice(list(pokedex.raid_bosses.keys()))
