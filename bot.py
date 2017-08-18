@@ -98,7 +98,7 @@ def parse_args(bot, update, args): # returns raid boss : str, start_time : str, 
 
     location = ' '.join(args[2:])
 
-    return pokemon, start_time, location
+    return pokemon.capitalize(), start_time, location
 
 def start_poll(bot, update, args):
     if not authorized(bot, update):
@@ -112,7 +112,7 @@ def start_poll(bot, update, args):
     creator = update.message.from_user.name
     poll = Poll(pokemon, start_time, location, creator)
 
-    msg = '{} created a poll: {}'.format(update.message.from_user.name, ', '.join(args))
+    msg = '{} created a poll: {}'.format(update.message.from_user.name, poll.description())
     logging.info(msg)
     bot.send_message(chat_id=update.message.chat_id, text=msg)
 
