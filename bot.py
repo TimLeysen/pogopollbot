@@ -106,8 +106,8 @@ def start_poll(bot, update, args):
     dispatcher.run_async(close_poll_on_timer, *(bot, msg.message_id))
     dispatcher.run_async(delete_poll_on_timer, *(bot, msg.message_id))
    
-def close_poll_on_timer(bot, message_id):
-    poll = polls[message_id]
+def close_poll_on_timer(bot, msg_id):
+    poll = polls[msg_id]
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
     if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
         logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
@@ -115,48 +115,35 @@ def close_poll_on_timer(bot, message_id):
         return
 
     time.sleep(delta.seconds)
-    
-    #TODO duplicate code with close_poll!
-    poll = polls[message_id]
-    if poll.closed:
-        logging.info('Poll is not closed automatically because poll is already closed: {}'\
-            .format(poll.description()))
-        return
-    
-    polls[message_id].set_closed()
-    poll = polls[message_id]
-    bot.edit_message_text(chat_id=config.output_channel_id, message_id=message_id,
-                          text=poll.message(), parse_mode='HTML')
-    
-    chat_id = config.input_chat_id
-    msg = 'Poll {} was closed automatically'.format(poll.description())
-    logging.info(msg)
-    bot.send_message(chat_id=chat_id, text=msg)
-    
+    __close_poll(bot, msg_id)
+
 def close_poll(bot, update, args):
     if not authorized(update):
         return
 
-    # TO DO: check if digit and in range
+    # TO DO: check if digit and in range and len(args)
     index = int(args[0])
-
-    chat_id = config.output_channel_id
-    message_id = sorted(polls)[index]
-    polls[message_id].set_closed()
-    poll = polls[message_id]
-     # remove keyboard
-    bot.edit_message_text(chat_id=chat_id,
-                          message_id=message_id,
-                          text=poll.message(),
-                          parse_mode='HTML')
-    
-    chat_id = update.message.chat_id
-    description = '{} {}'.format(index, poll.description())
-    msg = '{} closed poll {}'.format(update.message.from_user.name, description)
-    logging.info(msg)
-    bot.send_message(chat_id=chat_id, text=msg)
+    msg_id = sorted(polls)[index]
+    __close_poll(bot, msg_id, update)
     
     return
+
+def __close_poll(bot, msg_id, update=None):
+    chat_id = config.output_channel_id
+    polls[msg_id].set_closed()
+    poll = polls[msg_id]
+    bot.edit_message_text(chat_id=chat_id,
+                          message_id=msg_id,
+                          text=poll.message(),
+                          parse_mode='HTML')    
+
+    chat_id = config.input_chat_id
+    if update:
+        msg = '{} closed poll {}'.format(update.message.from_user.name, poll.description())
+    else:
+        msg = 'Automatically closed poll {}'.format(poll.description())
+    logging.info(msg)
+    bot.send_message(chat_id=chat_id, text=msg)
 
 # def open_poll(bot, update, args): # TO DO code duplication, see close_poll
     # if not authorized(update):
@@ -299,8 +286,9 @@ def test(bot, update):
     if not authorized(update):
         return
 
+    pokemon = random.choice(list(pokedex.raid_bosses.keys()))
     start_time = datetime.strftime(datetime.now() + timedelta(minutes=1), '%H:%M')
-    start_poll(bot, update, ['zapdos', start_time, 'TEST'])
+    start_poll(bot, update, [pokemon, start_time, 'TEST'])
     # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
     # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
 
