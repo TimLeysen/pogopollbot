@@ -18,9 +18,10 @@ deleteall - deletes all polls
 list - lists all polls
 """
 
-from datetime import datetime
+from datetime import datetime,timedelta
 import logging
-import sched, time
+import random
+import time
 
 from telegram import CallbackQuery
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -32,6 +33,10 @@ import config
 import pokedex
 from poll import Poll
 
+
+
+updater = Updater(config.bot_token)
+dispatcher = updater.dispatcher
 
 # key: Message, value: Poll
 polls = {}
@@ -46,8 +51,8 @@ def start(bot, update):
     #update.message.reply_text('Start message TODO')
     return
 
-def parse_args(update, args): # returns raid boss : str, start_time : str, location : str
-    chat_id = config.output_channel_id
+def parse_args(bot, update, args): # returns raid boss : str, start_time : str, location : str
+    chat_id = config.input_chat_id
     if len(args) < 3:
         msg = 'Incorrect format. Usage: /start <raid-boss> <start-time> <location>. For example: /start Moltres 13:00 Park Sint-Niklaas'
         bot.send_message(chat_id=chat_id, text=msg)
@@ -81,7 +86,7 @@ def start_poll(bot, update, args):
         return
 
     try:
-        pokemon, start_time, location = parse_args(update, args)
+        pokemon, start_time, location = parse_args(bot, update, args)
     except ValueError as e:
         logging.info(e)
         return
@@ -98,17 +103,26 @@ def start_poll(bot, update, args):
                            parse_mode='HTML')
     polls[msg.message_id] = poll
 
-    s = sched.scheduler(time.time, time.sleep)
-    # don't care about error at midnight
-    start_time = datetime.strptime(start_time, '%H:%M')
-    now = datetime.now()
-    seconds_left = (start_time - now).seconds
-    s.enter(seconds_left, 1, close_poll_on_timer, argument=(bot, msg.message_id,))
-    s.run(blocking=False) # doesn't work with blocking = False...
+    dispatcher.run_async(close_poll_on_timer, *(bot, msg.message_id))
+    dispatcher.run_async(delete_poll_on_timer, *(bot, msg.message_id))
    
 def close_poll_on_timer(bot, message_id):
+    poll = polls[message_id]
+    delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
+    if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
+        logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
+            .format(poll.description())
+        return
+
+    time.sleep(delta.seconds)
+    
     #TODO duplicate code with close_poll!
-    print('Automatically closing poll {}'.format(polls[message_id].description()))
+    poll = polls[message_id]
+    if poll.closed:
+        logging.info('Poll is not closed automatically because poll is already closed: {}'\
+            .format(poll.description()))
+        return
+    
     polls[message_id].set_closed()
     poll = polls[message_id]
     bot.edit_message_text(chat_id=config.output_channel_id, message_id=message_id,
@@ -188,34 +202,57 @@ def delete_poll(bot, update, args):
         return
 
     if len(args) != 1:
-        print('delete_poll: wrong args')
+        logging.error('delete_poll: wrong args')
         #TODO print message
         return
 
     index = args[0]
     if not index.isdigit():
-        print('delete_poll: no digit')
+        logging.error('delete_poll: poll id is not a digit')
         #TODO print message
         return
         
     index = int(index)
     if not index in range(0,len(polls)):
-        print('delete_poll: index out of range')
+        logging.error('delete_poll: index out of range')
         #TODO print message
         return
 
+    msg_id = sorted(polls)[index]
+    __delete_poll(bot, msg_id, update)
+        
+def delete_poll_on_timer(bot, msg_id):
+    poll = polls[msg_id]
+    delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
+    if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
+        logging.info('Poll is not deleted automatically because start time is earlier than now: {}')\
+            .format(poll.description())
+        return
+
+    # delete 2 hours after start time
+    # poll information should always be available for people that want do
+    # another group later
+    # time.sleep(delta.seconds + 7200)
+    time.sleep(delta.seconds + 10)
+    __delete_poll(bot, msg_id)
+
+def __delete_poll(bot, msg_id, update=None):
     chat_id = config.output_channel_id
-    message_id = sorted(polls)[index]
-    bot.delete_message(chat_id=chat_id, message_id=message_id)
+    bot.delete_message(chat_id=chat_id, message_id=msg_id)
+    description = polls[msg_id].description()
+    del polls[msg_id]
     
-    description = '{} {}'.format(index, polls[message_id].description())
-    del polls[message_id]
-    
-    chat_id = update.message.chat_id
-    msg = '{} deleted poll {}'.format(update.message.from_user.name, description)
-    logging.info(msg)
-    bot.send_message(chat_id=chat_id, text=msg)
-    
+    if update is not None:
+        chat_id = update.message.chat_id
+        msg = '{} deleted poll {}'.format(update.message.from_user.name, description)
+        logging.info(msg)
+        bot.send_message(chat_id=chat_id, text=msg)
+    else:
+        chat_id = config.input_chat_id
+        msg = 'Automatically deleted poll {}'.format(description)
+        logging.info(msg)
+        bot.send_message(chat_id=chat_id, text=msg)
+
 def list_polls(bot, update):
     if not authorized(update):
         return
@@ -262,9 +299,10 @@ def test(bot, update):
     if not authorized(update):
         return
 
-    start_poll(bot, update, ['zapdos', '13:00', 'TEST'])
-    start_poll(bot, update, ['moltres', '13:00', 'TEST'])
-    start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
+    start_time = datetime.strftime(datetime.now() + timedelta(minutes=1), '%H:%M')
+    start_poll(bot, update, ['zapdos', start_time, 'TEST'])
+    # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
+    # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
 
 def vote_callback(bot, update):
     query = update.callback_query
@@ -314,9 +352,7 @@ def error_callback(bot, update, error):
 logging.basicConfig(#filename='log_info.log',
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
-        
-updater = Updater(config.bot_token)
-dispatcher = updater.dispatcher
+
 
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
