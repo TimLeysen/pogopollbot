@@ -306,6 +306,11 @@ def help(bot, update):
           'Lists all polls. Shows each poll\'s id and description.'
     bot.send_message(chat_id=update.message.chat_id, text=msg)
 
+def chat_id(bot, update):
+    chat_id = update.message.chat_id
+    msg = 'This chat\'s id is {}'.format(chat_id)
+    bot.send_message(chat_id=chat_id, text=msg)
+
 def test(bot, update):
     if not authorized(bot, update):
         return
@@ -387,6 +392,8 @@ dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
 dispatcher.add_handler(CommandHandler('help', help))
+
+dispatcher.add_handler(CommandHandler('chatid', chat_id))
 
 if config.test_version:
     dispatcher.add_handler(CommandHandler('test', test))

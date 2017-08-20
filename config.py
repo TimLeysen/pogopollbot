@@ -11,7 +11,7 @@ if test_version:
     # general chat where create, close and delete commands are also posted
     output_chat_id = '@PoGoWaaslandTest'
     # chat from where users can send commands to the bot
-    # you can use /chat_id to the bot to get the chat id
+    # you can use /chatid to the bot to get the chat id
     input_chat_id = -212819985 # PoGoWaaslandBotTest
     bot_token = '382260415:AAHcSfajoIkJgvRa93_HraivGqBTjsnwTmE'
 else:
