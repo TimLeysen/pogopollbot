@@ -369,10 +369,13 @@ def error_callback(bot, update, error):
         # handle all other telegram related errors
         return
 
-
-logging.basicConfig(#filename='log_info.log',
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+if config.test_version:
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                        level=logging.INFO)
+else:
+    logging.basicConfig(filename='log_info.log',
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                        level=logging.INFO)
 
 
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
