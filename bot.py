@@ -109,10 +109,10 @@ def start_poll(bot, update, args):
     except ValueError as e:
         logging.info(e)
         return
+
     creator = update.message.from_user.name
     poll = Poll(pokemon, start_time, location, creator)
-
-    msg = '{} created a poll: {}'.format(update.message.from_user.name, poll.description())
+    msg = '{} created a poll: {}'.format(creator, poll.description())
     logging.info(msg)
     bot.send_message(chat_id=update.message.chat_id, text=msg)
 
@@ -123,7 +123,6 @@ def start_poll(bot, update, args):
     polls[msg.message_id] = poll
 
     dispatcher.run_async(close_poll_on_timer, *(bot, msg.message_id))
-    # dispatcher.run_async(delete_poll_on_timer, *(bot, msg.message_id))
    
 def close_poll_on_timer(bot, msg_id):
     poll = polls[msg_id]
