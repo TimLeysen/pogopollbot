@@ -70,15 +70,14 @@ def start(bot, update):
     #update.message.reply_text('Start message TODO')
     return
 
-def parse_args(bot, update, args): # returns raid boss : str, start_time : str, location : str
+def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_time : str, location : str
     chat_id = config.input_chat_id
     if len(args) < 3:
         msg = 'Incorrect format. Usage: /start <raid-boss> <start-time> <location>. For example: /start Moltres 13:00 Park Sint-Niklaas'
         bot.send_message(chat_id=chat_id, text=msg)
         raise ValueError('Incorrect format: expected three arguments: raid boss, start time, location')
 
-    # TO DO - remove this?
-    pokemon = args[0]
+    pokemon = args[0].capitalize() # TODO: Ho-Oh
     if not pokedex.name_exists(pokemon):
         msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
         bot.send_message(chat_id=chat_id, text=msg)
@@ -98,14 +97,14 @@ def parse_args(bot, update, args): # returns raid boss : str, start_time : str, 
 
     location = ' '.join(args[2:])
 
-    return pokemon.capitalize(), start_time, location
+    return pokemon, start_time, location
 
 def start_poll(bot, update, args):
     if not authorized(bot, update):
         return
 
     try:
-        pokemon, start_time, location = parse_args(bot, update, args)
+        pokemon, start_time, location = parse_args_start_poll(bot, update, args)
     except ValueError as e:
         logging.info(e)
         return
