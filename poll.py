@@ -49,7 +49,7 @@ class Poll:
     # last option is not visualized!
     options = ['Ik kom',
                'Ik kan pas later (volgende groep)',
-               'Ik kom niet']
+               'Ik kom niet meer']
     show_names = [True, True, False]
     
     @staticmethod
