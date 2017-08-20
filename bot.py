@@ -48,21 +48,24 @@ def authorized(bot, update):
         return False
     return True
 
-def admin(bot, update):
+def admin(bot, update, print_warning=True):
     chat_id = config.input_chat_id
     user_id = update.message.from_user.id
     try:
         member = bot.get_chat_member(chat_id=chat_id, user_id=user_id)
+        # doesn't work
         # if member.status in [telegram.ChatMember.ADMINISTRATOR, telegram.ChatMember.CREATOR]:
-        if member.status in ['administrator', 'creator']:
-            print('hololo')
+        is_admin = member.status in ['administrator', 'creator']
+        all_users_are_admins = update.message.chat.all_members_are_administrators
+        if is_admin or all_users_are_admins:
             return True
     except:
         pass
 
-    logging.warning('Unauthorized access from {} (not an admin)'\
-        .format(update.message.from_user.name))
-    bot.send_message(chat_id=update.message.chat_id, text='Not authorized')
+    if print_warning:
+        logging.warning('Unauthorized access from {} (not an admin)'\
+            .format(update.message.from_user.name))
+        bot.send_message(chat_id=update.message.chat_id, text='Not authorized')
     return False
     
 def start(bot, update):
@@ -206,7 +209,7 @@ def delete_all_polls(bot, update):
     bot.send_message(chat_id=chat_id, text=msg)
 
 def delete_poll(bot, update, args):
-    if not authorized(bot, update) or not admin(bot, update):
+    if not authorized(bot, update):
         return
 
     if len(args) != 1:
@@ -225,10 +228,20 @@ def delete_poll(bot, update, args):
         logging.error('delete_poll: index out of range')
         #TODO print message
         return
-
+    
     msg_id = sorted(polls)[index]
+    poll = polls[msg_id]
+    user_name = update.message.from_user.name
+    own_poll = user_name == poll.creator
+    if not own_poll and not admin(bot, update, print_warning=False):
+        chat_id = update.message.chat_id
+        msg = '{}, you cannot delete polls that you did not create yourself'.format(user_name)
+        logging.info(msg)
+        bot.send_message(chat_id=chat_id, text=msg)
+        return
+
     __delete_poll(bot, msg_id, update)
-        
+
 
 def __delete_poll(bot, msg_id, update=None):
     chat_id = config.output_channel_id
