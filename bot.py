@@ -113,7 +113,7 @@ def start_poll(bot, update, args):
 
     creator = update.message.from_user.name
     poll = Poll(pokemon, start_time, location, creator)
-    msg = '{} created a poll: {}'.format(creator, poll.description())
+    msg = '{} created a poll: {}.'.format(creator, poll.description())
     logging.info(msg)
     bot.send_message(chat_id=update.message.chat_id, text=msg)
     bot.send_message(chat_id=config.output_chat_id, text=msg)
@@ -185,11 +185,11 @@ def __close_poll(bot, msg_id, reason=None, update=None):
 
     chat_id = config.input_chat_id
     if update:
-        msg = '{} closed poll {}'.format(update.message.from_user.name, poll.description())
+        msg = '{} closed a poll: {}.'.format(update.message.from_user.name, poll.description())
         if reason:
-            msg += ' with reason {}'.format(reason)
+            msg += ' Reason: {}.'.format(reason)
     else:
-        msg = 'Automatically closed poll {}'.format(poll.description())
+        msg = 'Automatically closed a poll: {}.'.format(poll.description())
     logging.info(msg)
     bot.send_message(chat_id=chat_id, text=msg)
     bot.send_message(chat_id=config.output_chat_id, text=msg)
@@ -255,15 +255,15 @@ def __delete_poll(bot, msg_id, reason=None, update=None):
     
     if update is not None:
         chat_id = update.message.chat_id
-        msg = '{} deleted poll {}.'.format(update.message.from_user.name, description)
+        msg = '{} deleted a poll: {}.'.format(update.message.from_user.name, description)
         if reason is not None:
-            msg += ' Reason: {}'.format(reason)
+            msg += ' Reason: {}.'.format(reason)
         logging.info(msg)
         bot.send_message(chat_id=chat_id, text=msg)
         bot.send_message(chat_id=config.output_chat_id, text=msg)
     else:
         chat_id = config.input_chat_id
-        msg = 'Automatically deleted poll {}.'.format(description)
+        msg = 'Automatically deleted a poll {}.'.format(description)
         logging.info(msg)
         bot.send_message(chat_id=chat_id, text=msg)
         bot.send_message(chat_id=config.output_chat_id, text=msg)
