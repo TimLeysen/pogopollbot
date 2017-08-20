@@ -46,11 +46,15 @@ class Voters:
     
 
 class Poll:
-    # last option is not visualized!
+    # The vote count of the last option is not visualized!
+    # This options is used to unsubscribe.
     options = ['Ik kom',
                'Ik kan pas later (volgende groep)',
                'Ik kom niet meer']
     show_names = [True, True, False]
+    closed_text = 'GESLOTEN'
+    closed_reason_text = 'Gesloten wegens:'
+    created_by_text = 'Poll aangemaakt door'
     
     @staticmethod
     def reply_markup():
@@ -76,16 +80,16 @@ class Poll:
 
     def description(self):
         return '{} {} {}{}'.format(self.pokemon, self.time,
-            self.location, ' [GESLOTEN]' if self.closed else '')
+            self.location, ' [{}]'.format(Poll.closed_text) if self.closed else '')
 
     def message(self):
-        # disabled: image is too big on phones
+        # disabled: image is too big on phones and we can't change the preview size
         # msg = '<a href=\"{}\">&#8205;</a>\n'.format(self.img_url)
         msg = ''
         msg += '<b>{} {}{}</b>\n{}\n\n'.format(self.pokemon, self.time,
-            ' [GESLOTEN]' if self.closed else '', self.location)
+            ' [{}]'.format(Poll.closed_text) if self.closed else '', self.location)
         if self.closed:
-            msg += 'Gesloten wegens: {}\n\n'.format(self.closed_reason)
+            msg += '{} {}\n\n'.format(Poll.closed_reason_text, self.closed_reason)
         
         for i in range(0, len(self.all_voters)):
             voters = self.all_voters[i]
@@ -96,22 +100,22 @@ class Poll:
                     msg += '  {}{}\n'.format(voter.name, suffix)
             msg += '\n'
 
-        msg += 'Poll aangemaakt door {}'.format(self.creator)
+        msg += '{} {}'.format(Poll.created_by_text, self.creator)
         return msg
 
     def add_vote(self, name, choice):
         # clunky but whatever
-        if choice is 0: # ik kom
+        if choice is 0: # I can come
             # Multiple votes will increase a voter's player count
             self.all_voters[0].add(name)
             self.all_voters[1].remove(name)
 
-        if choice is 1: # ik kan pas later
+        if choice is 1: # I can come later (other group)
             # Multiple votes will increase a voter's player count
             self.all_voters[0].remove(name)
             self.all_voters[1].add(name)
         
-        if choice is 2: # ik kom niet (meer)
+        if choice is 2: # I can't come (anymore)
             # don't care about these users so don't store anything
             self.all_voters[0].remove(name)
             self.all_voters[1].remove(name)
