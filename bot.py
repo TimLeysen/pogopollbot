@@ -387,7 +387,6 @@ logging.basicConfig(#filename='log_info.log',
 
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
-# dispatcher.add_handler(CommandHandler('open', open_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
