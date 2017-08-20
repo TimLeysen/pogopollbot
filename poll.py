@@ -86,8 +86,15 @@ class Poll:
         # disabled: image is too big on phones and we can't change the preview size
         # msg = '<a href=\"{}\">&#8205;</a>\n'.format(self.img_url)
         msg = ''
-        msg += '<b>{} {}{}</b>\n{}\n\n'.format(self.pokemon, self.time,
+        msg += '<b>{} {}{}</b>\n'.format(self.pokemon, self.time,
             ' [{}]'.format(Poll.closed_text) if self.closed else '', self.location)
+        msg += '{}\n\n'.format(self.location)
+        
+        weaknesses = []
+        for weakness in pokedex.raid_bosses[self.pokemon.lower()]:
+            weaknesses.append('<b>{}</b>'.format(weakness) if weakness[-2:]=='x2' else weakness)
+        msg += 'Weaknesses: {}\n\n'.format(', '.join(weaknesses))
+        
         if self.closed:
             msg += '{} {}\n\n'.format(Poll.closed_reason_text, self.closed_reason)
         
