@@ -9,13 +9,12 @@
 
 """
 BotFather /setcommands
-help - shows the help message
-start - starts a poll
-close - closes a poll
-open - reopens a closed poll
-delete - deletes a poll
-deleteall - deletes all polls
-list - lists all polls
+help - shows the help message. Example: /help
+start - starts a poll. Example: /start Snorlax 13:00 Park
+close - closes a poll. Example: /close 0
+list - lists all polls. Example: /list
+delete - deletes a poll (admin only). Example: /delete 0
+deleteall - deletes all polls (admin only). Example: /deleteall
 """
 
 from datetime import datetime,timedelta
@@ -250,10 +249,6 @@ def help(bot, update):
           '/close <id>\n'\
           'Closes a poll. You can see the poll ids by typing /list.\n'\
           'Example: /close 0\n\n'\
-          \
-          '/open <id>\n'\
-          'Reopens a closed poll. You can see the poll ids by typing /list.\n'\
-          'Example: /open 0\n\n'\
           \
           '/delete <id>\n'\
           'Deletes a poll. You can see the poll ids by typing /list.\n'\
