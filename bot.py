@@ -1,19 +1,10 @@
-#https://python-telegram-bot.org/
-
-# t.me/PoGoPollBot
-# 427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg
-# https://core.telegram.org/bots/api
-
-# Introduction to the API: https://github.com/python-telegram-bot/python-telegram-bot/wiki/Introduction-to-the-API
-# !!! https://github.com/python-telegram-bot/python-telegram-bot/blob/master/examples/inlinekeyboard.py
-
 """
-BotFather /setcommands
+BotFather /setdescription
 help - shows the help message. Example: /help
 start - starts a poll. Example: /start Snorlax 13:00 Park
 close - closes a poll. Example: /close 0
 list - lists all polls. Example: /list
-delete - deletes a poll (admin only). Example: /delete 0
+delete - deletes a poll. Example: /delete 0
 deleteall - deletes all polls (admin only). Example: /deleteall
 """
 
@@ -39,6 +30,7 @@ dispatcher = updater.dispatcher
 
 # key: Message, value: Poll
 polls = {}
+
 
 def authorized(bot, update):
     if update.message.chat_id != config.input_chat_id:
@@ -67,10 +59,7 @@ def admin(bot, update, print_warning=True):
             .format(update.message.from_user.name))
         bot.send_message(chat_id=update.message.chat_id, text='Not authorized')
     return False
-    
-def start(bot, update):
-    #update.message.reply_text('Start message TODO')
-    return
+
 
 def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_time : str, location : str
     chat_id = config.input_chat_id
@@ -85,7 +74,7 @@ def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_t
         bot.send_message(chat_id=chat_id, text=msg)
         raise ValueError('{} is not a Pokemon'.format(pokemon))
 
-    # not needed and would require code changes when raid bosses change!
+    # not needed and would require code changes when raid bosses change
     # if not pokedex.is_raid_boss(args[0]):
         # raise Exception('{} is not a raid boss')
 
@@ -100,6 +89,7 @@ def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_t
     location = ' '.join(args[2:])
 
     return pokemon, start_time, location
+
 
 def start_poll(bot, update, args):
     if not authorized(bot, update):
@@ -129,7 +119,7 @@ def start_poll(bot, update, args):
 def close_poll_on_timer(bot, msg_id):
     poll = polls[msg_id]
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
-    if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
+    if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
         logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
             .format(poll.description())
         return
@@ -200,7 +190,7 @@ def delete_all_polls(bot, update):
         return
     
     chat_id = config.output_channel_id
-    # TODO: ask for confirmation!
+
     for message_id in polls.keys():
         bot.delete_message(chat_id=chat_id, message_id=message_id)
     polls.clear()
