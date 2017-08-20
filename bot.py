@@ -116,6 +116,7 @@ def start_poll(bot, update, args):
     msg = '{} created a poll: {}'.format(creator, poll.description())
     logging.info(msg)
     bot.send_message(chat_id=update.message.chat_id, text=msg)
+    bot.send_message(chat_id=config.output_chat_id, text=msg)
 
     msg = bot.send_message(chat_id=config.output_channel_id,
                            text=poll.message(),
@@ -191,6 +192,7 @@ def __close_poll(bot, msg_id, reason=None, update=None):
         msg = 'Automatically closed poll {}'.format(poll.description())
     logging.info(msg)
     bot.send_message(chat_id=chat_id, text=msg)
+    bot.send_message(chat_id=config.output_chat_id, text=msg)
 
     
 def delete_all_polls(bot, update):
@@ -258,11 +260,13 @@ def __delete_poll(bot, msg_id, reason=None, update=None):
             msg += ' Reason: {}'.format(reason)
         logging.info(msg)
         bot.send_message(chat_id=chat_id, text=msg)
+        bot.send_message(chat_id=config.output_chat_id, text=msg)
     else:
         chat_id = config.input_chat_id
         msg = 'Automatically deleted poll {}.'.format(description)
         logging.info(msg)
         bot.send_message(chat_id=chat_id, text=msg)
+        bot.send_message(chat_id=config.output_chat_id, text=msg)
 
 def list_polls(bot, update):
     if not authorized(bot, update):
