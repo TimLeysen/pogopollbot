@@ -397,5 +397,5 @@ dispatcher.add_handler(CallbackQueryHandler(vote_callback))
 dispatcher.add_error_handler(error_callback)
 
 updater.start_polling()
-print('running!')
+logging.info('running!')
 updater.idle()
