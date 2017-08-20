@@ -168,7 +168,7 @@ def close_poll(bot, update, args):
     
     return
 
-def __close_poll(bot, msg_id, reason = None, update=None):
+def __close_poll(bot, msg_id, reason=None, update=None):
     chat_id = config.output_channel_id
     if msg_id not in polls:
         logging.debug('Poll {} is already closed'.format(msg_id))
@@ -214,7 +214,7 @@ def delete_poll(bot, update, args):
         return
 
     chat_id = config.input_chat_id
-    if len(args) != 1:
+    if len(args) < 1:
         msg = 'Incorrect format. Usage: /delete <id> (<reason>). For example: /delete 0, /delete 0 Wrong pokemon'
         bot.send_message(chat_id=chat_id, text=msg)
         logging.error(msg)
@@ -226,8 +226,11 @@ def delete_poll(bot, update, args):
         bot.send_message(chat_id=chat_id, text=msg)    
         logging.error(msg)
         return
-        
     index = int(index)
+
+    reason = ' '.join(args[1:]) if len(args) > 1 else None
+    print(reason)
+    
     msg_id = sorted(polls)[index]
     poll = polls[msg_id]
     user_name = update.message.from_user.name
@@ -239,10 +242,10 @@ def delete_poll(bot, update, args):
         bot.send_message(chat_id=chat_id, text=msg)
         return
 
-    __delete_poll(bot, msg_id, update)
+    __delete_poll(bot, msg_id, reason, update)
 
 
-def __delete_poll(bot, msg_id, update=None):
+def __delete_poll(bot, msg_id, reason=None, update=None):
     chat_id = config.output_channel_id
     bot.delete_message(chat_id=chat_id, message_id=msg_id)
     description = polls[msg_id].description()
@@ -250,12 +253,14 @@ def __delete_poll(bot, msg_id, update=None):
     
     if update is not None:
         chat_id = update.message.chat_id
-        msg = '{} deleted poll {}'.format(update.message.from_user.name, description)
+        msg = '{} deleted poll {}.'.format(update.message.from_user.name, description)
+        if reason is not None:
+            msg += ' Reason: {}'.format(reason)
         logging.info(msg)
         bot.send_message(chat_id=chat_id, text=msg)
     else:
         chat_id = config.input_chat_id
-        msg = 'Automatically deleted poll {}'.format(description)
+        msg = 'Automatically deleted poll {}.'.format(description)
         logging.info(msg)
         bot.send_message(chat_id=chat_id, text=msg)
 
