@@ -296,6 +296,20 @@ def vote_callback(bot, update):
 
 def unknown_command(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
+
+def member_joined(bot, update):
+    new_members = update.message.new_chat_members
+    if new_members:
+        names = [x.name for x in new_members]
+        logging.info('member(s) joined: {}'.format(','.join(names)))
+        msg = 'Welkom {}!\n'\
+              'In deze chat kan je een poll aanmaken door bvb. /start Snorlax 14:00 Park Sint-Niklaas te typen.\n'\
+              'Polls worden automatisch gesloten als de start tijd verstrijkt. Je kan een poll ook manueel sluiten door bvb. '\
+              '/close 1 te typen. Het nummer van de poll kan je zien door /list te typen.\n'\
+              'Pols eerst even in de chat groep voor een start uur voordat je een nieuwe poll aanmaakt!\n'\
+              'Type /help voor meer informatie.\n'\
+                .format(','.join(names))
+        bot.send_message(chat_id=update.message.chat_id, text = msg)
     
 def error_callback(bot, update, error):
     try:
@@ -336,6 +350,7 @@ dispatcher.add_handler(CommandHandler('help', help))
 
 if config.test_version:
     dispatcher.add_handler(CommandHandler('test', test))
+dispatcher.add_handler(MessageHandler(Filters.chat(chat_id=config.input_chat_id), member_joined))
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
 dispatcher.add_handler(CallbackQueryHandler(vote_callback))
