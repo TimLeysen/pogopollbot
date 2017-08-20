@@ -36,7 +36,7 @@ def authorized(bot, update):
     if update.message.chat_id != config.input_chat_id:
         logging.warning('Unauthorized access from {} (wrong chat)'\
             .format(update.message.from_user.name))
-        bot.send_message(chat_id=update.message.chat_id, text='Not authorized')
+        # bot.send_message(chat_id=update.message.chat_id, text='Not authorized')
         return False
     return True
 
