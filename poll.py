@@ -75,14 +75,14 @@ class Poll:
 
     def description(self):
         return '{} {} {}{}'.format(self.pokemon, self.time,
-            self.location, ' [CLOSED]' if self.closed else '')
+            self.location, ' [GESLOTEN]' if self.closed else '')
 
     def message(self):
         # disabled: image is too big on phones
         # msg = '<a href=\"{}\">&#8205;</a>\n'.format(self.img_url)
         msg = ''
         msg += '<b>{} {}{}</b>\n{}\n\n'.format(self.pokemon, self.time,
-            ' [CLOSED]' if self.closed else '', self.location)
+            ' [GESLOTEN]' if self.closed else '', self.location)
         for i in range(0, len(self.all_voters)):
             voters = self.all_voters[i]
             msg += '<b>{}</b> [{}]\n'.format(Poll.options[i], voters.total_count())
@@ -92,7 +92,7 @@ class Poll:
                     msg += '  {}{}\n'.format(voter.name, suffix)
             msg += '\n'
 
-        msg += 'Poll created by {}'.format(self.creator)
+        msg += 'Poll aangemaakt door {}'.format(self.creator)
         return msg
 
     def add_vote(self, name, choice):
