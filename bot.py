@@ -57,7 +57,7 @@ def admin(bot, update, print_warning=True):
     if print_warning:
         logging.warning('Unauthorized access from {} (not an admin)'\
             .format(update.message.from_user.name))
-        bot.send_message(chat_id=update.message.chat_id, text='Not authorized')
+        bot.send_message(chat_id=update.message.chat_id, text='Only admins can use that command.')
     return False
 
 
