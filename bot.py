@@ -208,27 +208,26 @@ def delete_all_polls(bot, update):
     logging.info(msg)
     bot.send_message(chat_id=chat_id, text=msg)
 
+
 def delete_poll(bot, update, args):
     if not authorized(bot, update):
         return
 
+    chat_id = config.input_chat_id
     if len(args) != 1:
-        logging.error('delete_poll: wrong args')
-        #TODO print message
+        msg = 'Incorrect format. Usage: /delete <id> (<reason>). For example: /delete 0, /delete 0 Wrong pokemon'
+        bot.send_message(chat_id=chat_id, text=msg)
+        logging.error(msg)
         return
 
     index = args[0]
-    if not index.isdigit():
-        logging.error('delete_poll: poll id is not a digit')
-        #TODO print message
+    if not index.isdigit() or int(index) not in range(0,len(polls)):
+        msg = 'Unknown id. Type /list to see all polls and their ids.'
+        bot.send_message(chat_id=chat_id, text=msg)    
+        logging.error(msg)
         return
         
     index = int(index)
-    if not index in range(0,len(polls)):
-        logging.error('delete_poll: index out of range')
-        #TODO print message
-        return
-    
     msg_id = sorted(polls)[index]
     poll = polls[msg_id]
     user_name = update.message.from_user.name
