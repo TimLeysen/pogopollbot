@@ -131,25 +131,47 @@ def close_poll_on_timer(bot, msg_id):
         return
 
     time.sleep(delta.seconds)
-    __close_poll(bot, msg_id)
+    __close_poll(bot, msg_id, 'start tijd verstreken')
 
+def parse_args_close_poll(bot, update, args):
+    chat_id = config.input_chat_id
+    if len(args) < 1:
+        msg = 'Incorrect format. Usage: /close <id> (<reason>). For example: /close 0, /close 0 Niet genoeg interesse'
+        bot.send_message(chat_id=chat_id, text=msg)
+        raise ValueError('Incorrect format: expected at least 1 argument')
+
+    id = args[0]
+    if not id.isdigit() or int(id) not in range(0,len(polls)):
+        msg = 'Unknown poll id. Type /list to see all poll ids'
+        bot.send_message(chat_id=chat_id, text=msg)
+        raise ValueError('Incorrect format: unknown poll id')
+
+    reason = ' '.join(args[1:]).capitalize()
+    
+    return int(id), reason
+    
 def close_poll(bot, update, args):
     if not authorized(bot, update):
         return
 
-    # TO DO: check if digit and in range and len(args)
-    index = int(args[0])
+    try:
+        index, reason = parse_args_close_poll(bot, update, args)
+    except ValueError as e:
+        logging.info(e)
+        return
+
     msg_id = sorted(polls)[index]
-    __close_poll(bot, msg_id, update)
+    __close_poll(bot, msg_id, reason, update)
     
     return
 
-def __close_poll(bot, msg_id, update=None):
+def __close_poll(bot, msg_id, reason = None, update=None):
     chat_id = config.output_channel_id
     if msg_id not in polls:
         logging.debug('Poll {} is already closed'.format(msg_id))
         return
 
+    polls[msg_id].set_closed(reason)
     poll = polls[msg_id]
     del polls[msg_id]
     bot.edit_message_text(chat_id=chat_id,
@@ -160,6 +182,8 @@ def __close_poll(bot, msg_id, update=None):
     chat_id = config.input_chat_id
     if update:
         msg = '{} closed poll {}'.format(update.message.from_user.name, poll.description())
+        if reason:
+            msg += ' with reason {}'.format(reason)
     else:
         msg = 'Automatically closed poll {}'.format(poll.description())
     logging.info(msg)

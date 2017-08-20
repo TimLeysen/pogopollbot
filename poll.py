@@ -67,6 +67,7 @@ class Poll:
         self.location = location
         self.creator = creator
         self.closed = False
+        self.closed_reason = None
 
         # self.present = Choice()
         # self.later = Choice()
@@ -83,6 +84,9 @@ class Poll:
         msg = ''
         msg += '<b>{} {}{}</b>\n{}\n\n'.format(self.pokemon, self.time,
             ' [GESLOTEN]' if self.closed else '', self.location)
+        if self.closed:
+            msg += 'Gesloten wegens: {}\n\n'.format(self.closed_reason)
+        
         for i in range(0, len(self.all_voters)):
             voters = self.all_voters[i]
             msg += '<b>{}</b> [{}]\n'.format(Poll.options[i], voters.total_count())
@@ -112,8 +116,6 @@ class Poll:
             self.all_voters[0].remove(name)
             self.all_voters[1].remove(name)
         
-    def set_closed(self):
+    def set_closed(self, reason = None):
         self.closed = True
-        
-    def set_open(self):
-        self.closed = False
+        self.closed_reason = reason
