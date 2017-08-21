@@ -56,30 +56,6 @@ def check_poll_count(bot, count):
         bot.send_message(chat_id=chat_id, text='Just kidding! I\'m still here!')
         return
         
-# original pikachu
-        # "      ,___          .-;'"
-        # "      `"-.`\_...._/`.`  "
-        # "   ,      \        /    "
-        # ".-' ',    / ()   ()\    "
-        # "'._   \  /()    .  (|   "
-        # "   > .' ;,     -'-  /   "
-        # "  / <   |;,     __.;    "
-        # "  '-.'-.|  , \    , \   "
-        # "     `>.|;, \_)    \_)  "
-        # "      `-;     ,    /    "
-        # "         \    /   <     "
-        # "          '. <`'-,_)    " 
-
-# edit (format sucks on telegram)
-        # "      ,___          .-;'\n"\
-        # "      `\"-.`\\_...._/`.`  \n"\
-        # "   ,      \\        /    \n"\
-        # ".-' ',    / ()   ()\\    \n"\
-        # "'._   \\  /()    .  (|   \n"\
-        # "   > .' ;,     -'-  /   \n"\
-        # "  / <   |;,     __.;    \n"\
-        # "  '-.'-.|  , \    , \   \n"\
-        # "     `>.|;, \_)    \_)  \n"\
-        # "      `-;     ,    /    \n"\
-        # "         \\    /   <     \n"\
-        # "          '. <`\'-,_)    "
+    if count == 1000:
+        bot.send_message(chat_id=chat_id, text='1000 raids! You make me proud!')
+        return
