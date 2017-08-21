@@ -66,9 +66,7 @@ def admin(bot, update, print_warning=True):
     user_id = update.message.from_user.id
     try:
         member = bot.get_chat_member(chat_id=chat_id, user_id=user_id)
-        # doesn't work
-        # if member.status in [telegram.ChatMember.ADMINISTRATOR, telegram.ChatMember.CREATOR]:
-        is_admin = member.status in ['administrator', 'creator']
+        is_admin = member.status in [ChatMember.ADMINISTRATOR, ChatMember.CREATOR]
         all_users_are_admins = update.message.chat.all_members_are_administrators
         if is_admin or all_users_are_admins:
             return True
