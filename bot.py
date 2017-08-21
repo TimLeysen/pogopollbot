@@ -32,6 +32,24 @@ dispatcher = updater.dispatcher
 polls = {}
 
 
+"""
+Helper functions
+"""
+
+# Sends a message to both the input and output chats and logs it
+# Messages: created/closed/deleted a poll
+def send_message(bot, msg):
+    logging.info(msg)
+    bot.send_message(chat_id=config.input_chat_id, text=msg)
+    bot.send_message(chat_id=config.output_chat_id, text=msg)
+
+# Send a message to the channel where users send commands to the bots
+# This is mainly for giving information when using a command wrong.
+def send_command_message(bot, update, msg):
+    logging.info(msg)
+    bot.send_message(chat_id=update.message.chat_id, text=msg)
+
+# Test if a user is allowed to send commands to the bot
 def authorized(bot, update):
     if update.message.chat_id != config.input_chat_id:
         logging.warning('Unauthorized access from {} (wrong chat)'\
@@ -40,6 +58,7 @@ def authorized(bot, update):
         return False
     return True
 
+# Test if a user is an admin
 def admin(bot, update, print_warning=True):
     chat_id = config.input_chat_id
     user_id = update.message.from_user.id
@@ -55,23 +74,29 @@ def admin(bot, update, print_warning=True):
         pass
 
     if print_warning:
-        logging.warning('Unauthorized access from {} (not an admin)'\
-            .format(update.message.from_user.name))
-        bot.send_message(chat_id=update.message.chat_id, text='Only admins can use that command.')
+        msg = 'Only admins can use that command.'
+        send_command_message(bot, update, msg)
+        
+        user_name = update.message.from_user.name
+        logging.warning('Unauthorized access from {} (not an admin)'.format(user_name))
     return False
 
 
+
+"""
+Bot commands
+"""
+    
 def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_time : str, location : str
-    chat_id = config.input_chat_id
     if len(args) < 3:
         msg = 'Incorrect format. Usage: /start <raid-boss> <start-time> <location>. For example: /start Moltres 13:00 Park Sint-Niklaas'
-        bot.send_message(chat_id=chat_id, text=msg)
+        send_command_message(bot, update, msg)
         raise ValueError('Incorrect format: expected three arguments: raid boss, start time, location')
 
     pokemon = args[0].capitalize() # TODO: Ho-Oh
     if not pokedex.name_exists(pokemon):
         msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
-        bot.send_message(chat_id=chat_id, text=msg)
+        send_command_message(bot, update, msg)
         raise ValueError('{} is not a Pokemon'.format(pokemon))
 
     # not needed and would require code changes when raid bosses change
@@ -83,7 +108,7 @@ def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_t
         datetime.strptime(start_time, '%H:%M').time()
     except:
         msg = 'Incorrect time format. Expected HH:MM. For example: 13:00'
-        bot.send_message(chat_id=chat_id, text=msg)
+        send_command_message(bot, update, msg)
         raise ValueError('Incorrect time format: {}'.format(start_time))
 
     location = ' '.join(args[2:])
@@ -104,9 +129,7 @@ def start_poll(bot, update, args):
     creator = update.message.from_user.name
     poll = Poll(pokemon, start_time, location, creator)
     msg = '{} created a poll: {}.'.format(creator, poll.description())
-    logging.info(msg)
-    bot.send_message(chat_id=update.message.chat_id, text=msg)
-    bot.send_message(chat_id=config.output_chat_id, text=msg)
+    send_message(bot, msg)
 
     msg = bot.send_message(chat_id=config.output_channel_id,
                            text=poll.message(),
@@ -128,16 +151,15 @@ def close_poll_on_timer(bot, msg_id):
     __close_poll(bot, msg_id, 'start tijd verstreken')
 
 def parse_args_close_poll(bot, update, args):
-    chat_id = config.input_chat_id
     if len(args) < 1:
         msg = 'Incorrect format. Usage: /close <id> (<reason>). For example: /close 0, /close 0 Niet genoeg interesse'
-        bot.send_message(chat_id=chat_id, text=msg)
+        send_command_message(bot, update, msg)
         raise ValueError('Incorrect format: expected at least 1 argument')
 
     id = args[0]
     if not id.isdigit() or int(id) not in range(0,len(polls)):
         msg = 'Unknown poll id. Type /list to see all poll ids'
-        bot.send_message(chat_id=chat_id, text=msg)
+        send_command_message(bot, update, msg)
         raise ValueError('Incorrect format: unknown poll id')
 
     reason = ' '.join(args[1:]).capitalize()
@@ -180,9 +202,7 @@ def __close_poll(bot, msg_id, reason=None, update=None):
             msg += ' Reason: {}.'.format(reason)
     else:
         msg = 'Automatically closed a poll: {}.'.format(poll.description())
-    logging.info(msg)
-    bot.send_message(chat_id=chat_id, text=msg)
-    bot.send_message(chat_id=config.output_chat_id, text=msg)
+    send_message(bot, msg)
 
     
 def delete_all_polls(bot, update):
@@ -190,15 +210,12 @@ def delete_all_polls(bot, update):
         return
     
     chat_id = config.output_channel_id
-
     for message_id in polls.keys():
         bot.delete_message(chat_id=chat_id, message_id=message_id)
     polls.clear()
 
-    chat_id = update.message.chat_id
     msg = '{} deleted all polls.'.format(update.message.from_user.name)
-    logging.info(msg)
-    bot.send_message(chat_id=chat_id, text=msg)
+    send_message(bot, msg)
 
 
 def delete_poll(bot, update, args):
@@ -206,18 +223,15 @@ def delete_poll(bot, update, args):
         return
 
     # Check arguments
-    chat_id = config.input_chat_id
     if len(args) < 1:
         msg = 'Incorrect format. Usage: /delete <id> (<reason>). For example: /delete 0, /delete 0 Wrong pokemon'
-        bot.send_message(chat_id=chat_id, text=msg)
-        logging.error(msg)
+        send_command_message(bot, update, msg)
         return
 
     index = args[0]
     if not index.isdigit() or int(index) not in range(0,len(polls)):
         msg = 'Unknown id. Type /list to see all polls and their ids.'
-        bot.send_message(chat_id=chat_id, text=msg)    
-        logging.error(msg)
+        send_command_message(bot, update, msg)
         return
     index = int(index)
 
@@ -229,10 +243,8 @@ def delete_poll(bot, update, args):
     user_name = update.message.from_user.name
     own_poll = user_name == poll.creator
     if not own_poll and not admin(bot, update, print_warning=False):
-        chat_id = update.message.chat_id
         msg = '{}, you cannot delete polls that you did not create yourself'.format(user_name)
-        logging.info(msg)
-        bot.send_message(chat_id=chat_id, text=msg)
+        send_command_message(bot, update, msg)
         return
 
     __delete_poll(bot, msg_id, reason, update)
@@ -249,19 +261,13 @@ def __delete_poll(bot, msg_id, reason=None, update=None):
     
     description = polls[msg_id].description()
     if update is not None:
-        chat_id = update.message.chat_id
         msg = '{} deleted a poll: {}.'.format(update.message.from_user.name, description)
         if reason is not None:
             msg += ' Reason: {}.'.format(reason)
-        logging.info(msg)
-        bot.send_message(chat_id=chat_id, text=msg)
-        bot.send_message(chat_id=config.output_chat_id, text=msg)
+        send_message(bot, msg)
     else:
-        chat_id = config.input_chat_id
         msg = 'Automatically deleted a poll {}.'.format(description)
-        logging.info(msg)
-        bot.send_message(chat_id=chat_id, text=msg)
-        bot.send_message(chat_id=config.output_chat_id, text=msg)
+        send_message(bot, msg)
         
     del polls[msg_id]
 
@@ -278,7 +284,7 @@ def list_polls(bot, update):
     if not msg:
         msg = 'No polls found'
 
-    bot.send_message(chat_id=update.message.chat_id, text=msg)
+    send_command_message(bot, update, msg)
 
 def help(bot, update):
     is_private_chat = update.message.chat.type == Chat.PRIVATE
@@ -306,12 +312,12 @@ def help(bot, update):
           \
           '/list\n'\
           'Lists all polls. Shows each poll\'s id and description.'
-    bot.send_message(chat_id=update.message.chat_id, text=msg)
+    send_command_message(bot, update, msg)
 
 def chat_id(bot, update):
     chat_id = update.message.chat_id
     msg = 'This chat\'s id is {}'.format(chat_id)
-    bot.send_message(chat_id=chat_id, text=msg)
+    send_command_message(bot, update, msg)
 
 def test(bot, update):
     if not authorized(bot, update):
@@ -342,7 +348,8 @@ def vote_callback(bot, update):
     bot.answer_callback_query(query.id)
 
 def unknown_command(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
+    msg = "Sorry, I didn't understand that command."
+    send_command_message(bot, update, msg)
 
 def member_joined(bot, update):
     new_members = update.message.new_chat_members
@@ -356,7 +363,7 @@ def member_joined(bot, update):
               'Pols eerst even in de chat groep voor een start uur voordat je een nieuwe poll aanmaakt!\n'\
               'Type /help voor meer informatie.\n'\
                 .format(','.join(names))
-        bot.send_message(chat_id=update.message.chat_id, text = msg)
+        send_command_message(bot, update, msg)
     
 def error_callback(bot, update, error):
     try:
