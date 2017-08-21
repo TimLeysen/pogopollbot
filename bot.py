@@ -10,6 +10,7 @@ deleteall - deletes all polls (admin only). Example: /deleteall
 
 from datetime import datetime,timedelta
 import logging
+import pickle
 import random
 import time
 
@@ -78,8 +79,8 @@ def admin(bot, update, print_warning=True):
         msg = 'Only admins can use that command.'
         send_command_message(bot, update, msg)
         
-        user_name = update.message.from_user.name
-        logging.warning('Unauthorized access from {} (not an admin)'.format(user_name))
+    user_name = update.message.from_user.name
+    logging.warning('Unauthorized access from {} (not an admin)'.format(user_name))
     return False
 
 def poll_exists(id : int):
@@ -373,6 +374,36 @@ def test(bot, update):
     # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
     # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
 
+data_file = 'data.pickle'
+def save_state(bot, update):
+    if not authorized(bot, update) and not admin(bot, update):
+        return
+
+    try:
+        with open(data_file, 'wb') as f:
+            data = {'id_generator' : Poll.id_generator, 'polls' : polls}
+            pickle.dump(data, f)
+        send_command_message(bot, update, 'Saved state to file')
+    except Exception as e:
+        send_command_message(bot, update, 'Failed to save state to file')
+        logging.exception(e)
+        
+def load_state(bot, update):
+    if not authorized(bot, update) and not admin(bot, update):
+        return
+
+    global polls
+    
+    try:
+        with open(data_file, 'rb') as f:
+            data = pickle.load(f)
+            Poll.id_generator = data['id_generator']
+            polls = data['polls']
+        send_command_message(bot, update, 'Loaded state from file')
+    except Exception as e:
+        send_command_message(bot, update, 'Failed to load state from file')
+        logging.exception(e)
+    
 def vote_callback(bot, update):
     query = update.callback_query
     msg_id = query.message.message_id
@@ -451,7 +482,10 @@ dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
 dispatcher.add_handler(CommandHandler('help', help))
 
+# ADMIN COMMANDS
 dispatcher.add_handler(CommandHandler('chatid', chat_id))
+dispatcher.add_handler(CommandHandler('save', save_state))
+dispatcher.add_handler(CommandHandler('load', load_state))
 
 if config.test_version:
     dispatcher.add_handler(CommandHandler('test', test))
