@@ -47,7 +47,7 @@ class Voters:
 
 
 class Poll:
-    id_generator = itertools.count(1)
+    id_generator = itertools.count(0)
 
     # The vote count of the last option is not visualized!
     # This options is used to unsubscribe.
