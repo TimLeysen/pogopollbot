@@ -68,7 +68,8 @@ class Poll:
         return InlineKeyboardMarkup(menu)
 
     def __init__(self, pokemon, time, location, creator):
-        self.id = next(self.id_generator)%101 # 1-100
+        self.global_id = next(self.id_generator)
+        self.id = self.global_id%100 + 1
         self.pokemon = pokemon
         self.img_url = 'http://floatzel.net/pokemon/black-white/sprites/images/{0}.png'\
                         .format(pokedex.get_id(pokemon))

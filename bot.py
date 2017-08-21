@@ -20,6 +20,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
 
 import config
+import eastereggs
 import pokedex
 from poll import Poll
 
@@ -160,6 +161,8 @@ def start_poll(bot, update, args):
 
     dispatcher.run_async(close_poll_on_timer, *(bot, poll.id))
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
+    
+    dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
    
 def close_poll_on_timer(bot, poll_id):
     poll = get_poll(poll_id)
@@ -251,7 +254,7 @@ def delete_poll_on_timer(bot, poll_id):
         return
 
     # delete 1 hour after start time
-    time.sleep(delta.seconds + 2)
+    time.sleep(delta.seconds + 3600)
     __delete_poll(bot, poll_id)
 
 
