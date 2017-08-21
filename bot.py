@@ -216,7 +216,7 @@ def __close_poll(bot, poll_id, reason=None, update=None):
             logging.info(msg)
         return
     
-    poll = poll.set_closed(reason)
+    poll.set_closed(reason)
     chat_id = config.output_channel_id
     bot.edit_message_text(chat_id=chat_id,
                           message_id=get_poll_msg_id(poll.id),
@@ -298,7 +298,8 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
         logging.info('Poll {} has already been deleted'.info(poll_id))
         return
 
-    poll = get_poll(poll_id).set_deleted(reason)
+    poll = get_poll(poll_id)
+    poll.set_deleted(reason)
     chat_id = config.output_channel_id
     msg_id = get_poll_msg_id(poll.id)
     bot.edit_message_text(chat_id=chat_id,
@@ -379,14 +380,13 @@ def test(bot, update):
 def vote_callback(bot, update):
     query = update.callback_query
     msg_id = query.message.message_id
+    poll = polls[msg_id]
     
     try:
-        polls[msg_id].add_vote(query.from_user.name, int(query.data))
+        poll.add_vote(query.from_user.name, int(query.data))
     except KeyError as e:
         logging.info('User tried to vote for an old poll that is still open')
         return
-        
-    poll = polls[msg_id]
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
     query.edit_message_text(text=poll.message(),
