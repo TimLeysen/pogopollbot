@@ -13,7 +13,7 @@ import logging
 import random
 import time
 
-from telegram import CallbackQuery, ChatMember
+from telegram import CallbackQuery, Chat, ChatMember
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError)
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
@@ -274,6 +274,11 @@ def list_polls(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=msg)
 
 def help(bot, update):
+    is_private_chat = update.message.chat.type == Chat.PRIVATE
+    is_input_chat = update.message.chat_id == config.input_chat_id
+    if not (is_private_chat or is_input_chat):
+        return
+
     msg = '/help\n'\
           'Shows this message\n\n'\
           \
