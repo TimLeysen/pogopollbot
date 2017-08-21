@@ -237,8 +237,8 @@ def delete_all_polls(bot, update):
         return
     
     chat_id = config.output_channel_id
-    for message_id in polls.keys():
-        bot.delete_message(chat_id=chat_id, message_id=message_id)
+    for msg_id in polls.keys():
+        bot.delete_message(chat_id=chat_id, message_id=msg_id)
     polls.clear()
 
     msg = '{} deleted all polls.'.format(update.message.from_user.name)
