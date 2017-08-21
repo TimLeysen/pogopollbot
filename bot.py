@@ -376,7 +376,7 @@ def test(bot, update):
 
 data_file = 'data.pickle'
 def save_state(bot, update):
-    if not authorized(bot, update) and not admin(bot, update):
+    if not authorized(bot, update) or not admin(bot, update):
         return
 
     try:
@@ -389,7 +389,7 @@ def save_state(bot, update):
         logging.exception(e)
         
 def load_state(bot, update):
-    if not authorized(bot, update) and not admin(bot, update):
+    if not authorized(bot, update) or not admin(bot, update):
         return
 
     global polls
