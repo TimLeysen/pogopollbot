@@ -81,7 +81,7 @@ def admin(bot, update, print_warning=True):
         logging.warning('Unauthorized access from {} (not an admin)'.format(user_name))
     return False
 
-def poll_id_exists(poll_id : int):
+def poll_exists(poll_id : int):
     for poll in polls.values():
         if poll_id == poll.id:
             return True
@@ -97,7 +97,7 @@ def get_poll(poll_id : int):
 
 def parse_poll_id_arg(bot, update, arg : str):
     id = arg.lstrip('#')
-    if not id.isdigit() or not poll_id_exists(int(id)):
+    if not id.isdigit() or not poll_exists(int(id)):
         msg = 'Unknown poll id. Type /list to see all poll ids'
         send_command_message(bot, update, msg)
         raise ValueError('Incorrect format: unknown poll id')
@@ -200,7 +200,7 @@ def close_poll(bot, update, args):
 
 # TODO: id exists is checked in close_poll (user command) but also here...
 def __close_poll(bot, poll_id, reason=None, update=None):
-    if not poll_id_exists(poll_id):
+    if not poll_exists(poll_id):
         logging.info('Poll does not exist anymore')
         return
 
@@ -291,7 +291,7 @@ def delete_poll(bot, update, args):
 
 
 def __delete_poll(bot, poll_id, reason=None, update=None):
-    if not poll_id_exists(poll_id):
+    if not poll_exists(poll_id):
         logging.info('Poll {} has already been deleted'.info(poll_id))
         return
 
