@@ -1,4 +1,4 @@
-from enum import Enum
+import itertools
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -12,7 +12,8 @@ class Voter:
 
     def add_player(self):
         self.count +=1
-        
+
+
 class Voters:
     def __init__(self):
         self.voters = []
@@ -43,9 +44,11 @@ class Voters:
                 return i
             i += 1
         return -1
-    
+
 
 class Poll:
+    id_generator = itertools.count(1)
+
     # The vote count of the last option is not visualized!
     # This options is used to unsubscribe.
     options = ['Ik kom',
@@ -65,6 +68,7 @@ class Poll:
         return InlineKeyboardMarkup(menu)
 
     def __init__(self, pokemon, time, location, creator):
+        self.id = next(self.id_generator)%101 # 1-100
         self.pokemon = pokemon
         self.img_url = 'http://floatzel.net/pokemon/black-white/sprites/images/{0}.png'\
                         .format(pokedex.get_id(pokemon))
@@ -82,8 +86,13 @@ class Poll:
         self.all_voters = [Voters(), Voters()]
 
     def description(self):
-        return '{} {} {}{}'.format(self.pokemon, self.time,
-            self.location, ' [{}]'.format(Poll.closed_text) if self.closed else '')
+        desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon, self.time, self.location)
+        if self.closed:
+            desc += ' [{}]'.format(Poll.closed_text)
+        return desc
+
+    def id_string(self):
+        return str(self.id).zfill(3)
 
     def message(self):
         # disabled: image is too big on phones and we can't change the preview size
