@@ -150,7 +150,9 @@ class Poll:
     def set_closed(self, reason = None):
         self.closed = True
         self.closed_reason = reason
+        return self
         
     def set_deleted(self, reason = None):
         self.deleted = True
         self.delete_reason = reason
+        return self

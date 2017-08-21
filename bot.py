@@ -81,6 +81,24 @@ def admin(bot, update, print_warning=True):
         logging.warning('Unauthorized access from {} (not an admin)'.format(user_name))
     return False
 
+def poll_id_exists(poll_id : int):
+    for poll in polls.values():
+        if poll_id == poll.id:
+            return True
+    return False
+    
+def get_poll_msg_id(poll_id : int):
+    for msg_id, poll in polls.items():
+        if poll.id == poll_id:
+            return msg_id
+
+def parse_poll_id_arg(bot, update, arg : str):
+    id = arg.lstrip('#')
+    if not id.isdigit() or not poll_id_exists(int(id)):
+        msg = 'Unknown poll id. Type /list to see all poll ids'
+        send_command_message(bot, update, msg)
+        raise ValueError('Incorrect format: unknown poll id')
+    return int(id)
 
 
 """
@@ -154,49 +172,42 @@ def close_poll_on_timer(bot, msg_id):
 
 def parse_args_close_poll(bot, update, args):
     if len(args) < 1:
-        msg = 'Incorrect format. Usage: /close <id> (<reason>). For example: /close 0, /close 0 Niet genoeg interesse'
+        msg = 'Incorrect format. Usage: /close <id> (<reason>). For example: /close 0, /close 0 Duplicate poll'
         send_command_message(bot, update, msg)
         raise ValueError('Incorrect format: expected at least 1 argument')
 
-    id = args[0]
-    if not id.isdigit() or int(id) not in range(0,len(polls)):
-        msg = 'Unknown poll id. Type /list to see all poll ids'
-        send_command_message(bot, update, msg)
-        raise ValueError('Incorrect format: unknown poll id')
-
-    reason = ' '.join(args[1:]).capitalize()
+    id = parse_poll_id_arg(bot, update, args[0])
+    reason = ' '.join(args[1:]) if len(args) > 1 else None
     
-    return int(id), reason
+    return id, reason
     
 def close_poll(bot, update, args):
     if not authorized(bot, update):
         return
 
     try:
-        index, reason = parse_args_close_poll(bot, update, args)
+        poll_id, reason = parse_args_close_poll(bot, update, args)
     except ValueError as e:
         logging.info(e)
         return
 
-    msg_id = sorted(polls)[index]
-    __close_poll(bot, msg_id, reason, update)
+    __close_poll(bot, poll_id, reason, update)
     
     return
 
-def __close_poll(bot, msg_id, reason=None, update=None):
+def __close_poll(bot, poll_id, reason=None, update=None):
     chat_id = config.output_channel_id
-    if msg_id not in polls:
-        logging.debug('Poll {} is already closed'.format(msg_id))
+    if not poll_id_exists(poll_id):
+        logging.debug('Poll {} is already closed'.format(poll_id))
         return
 
-    polls[msg_id].set_closed(reason)
-    poll = polls[msg_id]
+    msg_id = get_poll_msg_id(poll_id)
+    poll = polls[msg_id].set_closed(reason)
     bot.edit_message_text(chat_id=chat_id,
                           message_id=msg_id,
                           text=poll.message(),
                           parse_mode='HTML')
 
-    chat_id = config.input_chat_id
     if update:
         msg = '{} closed a poll: {}.'.format(update.message.from_user.name, poll.description())
         if reason:
@@ -219,18 +230,6 @@ def delete_all_polls(bot, update):
     send_message(bot, msg)
 
 
-def close_poll_on_timer(bot, msg_id):
-    poll = polls[msg_id]
-    delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
-    if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
-        logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
-            .format(poll.description())
-        return
-
-    time.sleep(delta.seconds)
-    __close_poll(bot, msg_id, 'start tijd verstreken')
-
-
 def delete_poll_on_timer(bot, msg_id):
     poll = polls[msg_id]
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
@@ -244,47 +243,65 @@ def delete_poll_on_timer(bot, msg_id):
     __delete_poll(bot, msg_id)
 
 
+def close_poll(bot, update, args):
+    if not authorized(bot, update):
+        return
+
+    try:
+        poll_id, reason = parse_args_close_poll(bot, update, args)
+    except ValueError as e:
+        logging.info(e)
+        return
+
+    __close_poll(bot, poll_id, reason, update)
+    
+    return
+    
+
+# TODO: almost the same code as close_poll    
+def parse_args_delete_poll(bot, update, args):
+    if len(args) < 1:
+        msg = 'Incorrect format. Usage: /delete <id> (<reason>). For example: /delete 0, /delete 0 Duplicate poll'
+        send_command_message(bot, update, msg)
+        raise ValueError('Incorrect format: expected at least 1 argument')
+
+    id = parse_poll_id_arg(bot, update, args[0])
+    reason = ' '.join(args[1:]) if len(args) > 1 else None
+    
+    return id, reason
+    
+    
 def delete_poll(bot, update, args):
     if not authorized(bot, update):
         return
 
-    # Check arguments
-    if len(args) < 1:
-        msg = 'Incorrect format. Usage: /delete <id> (<reason>). For example: /delete 0, /delete 0 Wrong pokemon'
-        send_command_message(bot, update, msg)
+    try:
+        poll_id, reason = parse_args_delete_poll(bot, update, args)
+    except ValueError as e:
+        logging.info(e)
         return
-
-    index = args[0]
-    if not index.isdigit() or int(index) not in range(0,len(polls)):
-        msg = 'Unknown id. Type /list to see all polls and their ids.'
-        send_command_message(bot, update, msg)
-        return
-    index = int(index)
-
-    reason = ' '.join(args[1:]) if len(args) > 1 else None
     
     # Check if the user that tries to delete a poll is the creator of that poll or an admin
-    msg_id = sorted(polls)[index]
-    poll = polls[msg_id]
+    msg_id = get_poll_msg_id(poll_id)
     user_name = update.message.from_user.name
-    own_poll = user_name == poll.creator
+    own_poll = user_name == polls[msg_id].creator
     if not own_poll and not admin(bot, update, print_warning=False):
         msg = '{}, you cannot delete polls that you did not create yourself'.format(user_name)
         send_command_message(bot, update, msg)
         return
 
-    __delete_poll(bot, msg_id, reason, update)
+    __delete_poll(bot, poll_id, reason, update)
 
 
-def __delete_poll(bot, msg_id, reason=None, update=None):
-    if msg_id not in polls:
+def __delete_poll(bot, poll_id, reason=None, update=None):
+    if not poll_id_exists(poll_id):
         logging.debug('Poll has already been deleted')
         return
 
-    polls[msg_id].set_deleted(reason)
+    msg_id = get_poll_msg_id(poll_id)
+    poll = polls[msg_id].set_deleted(reason)
 
     chat_id = config.output_channel_id
-    poll = polls[msg_id] # update
     bot.edit_message_text(chat_id=chat_id,
                           message_id=msg_id,
                           text=poll.message(),
@@ -308,10 +325,8 @@ def list_polls(bot, update):
         return
 
     msg = ''
-    i = 0
-    for message_id, poll in sorted(polls.items()):
-        msg += '{} {}\n'.format(i, poll.description())
-        i += 1
+    for msg_id, poll in sorted(polls.items()):
+        msg += '{}\n'.format(poll.description())
 
     if not msg:
         msg = 'No polls found'
