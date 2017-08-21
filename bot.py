@@ -240,8 +240,7 @@ def delete_poll_on_timer(bot, msg_id):
         return
 
     # delete 1 hour after start time
-    # time.sleep(delta.seconds + 3600)
-    time.sleep(delta.seconds + 10)
+    time.sleep(delta.seconds + 3600)
     __delete_poll(bot, msg_id)
 
 
@@ -278,8 +277,13 @@ def delete_poll(bot, update, args):
 
 
 def __delete_poll(bot, msg_id, reason=None, update=None):
-    chat_id = config.output_channel_id
+    if msg_id not in polls:
+        logging.debug('Poll has already been deleted')
+        return
+
     polls[msg_id].set_deleted(reason)
+
+    chat_id = config.output_channel_id
     poll = polls[msg_id] # update
     bot.edit_message_text(chat_id=chat_id,
                           message_id=msg_id,
@@ -295,7 +299,7 @@ def __delete_poll(bot, msg_id, reason=None, update=None):
     else:
         msg = 'Automatically deleted a poll: {}.'.format(description)
         # don't print useless information to main chat!
-        send_command_message(bot, msg)
+        bot.send_message(chat_id=config.input_chat_id, text=msg)
         
     del polls[msg_id]
 
