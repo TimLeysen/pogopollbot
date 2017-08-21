@@ -92,6 +92,9 @@ def get_poll_msg_id(poll_id : int):
         if poll.id == poll_id:
             return msg_id
 
+def get_poll(poll_id : int):
+    return polls[get_poll_msg_id(poll_id)]
+
 def parse_poll_id_arg(bot, update, arg : str):
     id = arg.lstrip('#')
     if not id.isdigit() or not poll_id_exists(int(id)):
@@ -155,11 +158,11 @@ def start_poll(bot, update, args):
                            parse_mode='HTML')
     polls[msg.message_id] = poll
 
-    dispatcher.run_async(close_poll_on_timer, *(bot, msg.message_id))
-    dispatcher.run_async(delete_poll_on_timer, *(bot, msg.message_id))
+    dispatcher.run_async(close_poll_on_timer, *(bot, poll.id))
+    dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
    
-def close_poll_on_timer(bot, msg_id):
-    poll = polls[msg_id]
+def close_poll_on_timer(bot, poll_id):
+    poll = get_poll(poll_id)
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
     if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
         logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
@@ -167,7 +170,7 @@ def close_poll_on_timer(bot, msg_id):
         return
 
     time.sleep(delta.seconds)
-    __close_poll(bot, msg_id, 'start tijd verstreken')
+    __close_poll(bot, poll_id, 'start tijd verstreken')
 
 
 def parse_args_close_poll(bot, update, args):
@@ -195,16 +198,25 @@ def close_poll(bot, update, args):
     
     return
 
+# TODO: id exists is checked in close_poll (user command) but also here...
 def __close_poll(bot, poll_id, reason=None, update=None):
-    chat_id = config.output_channel_id
     if not poll_id_exists(poll_id):
-        logging.debug('Poll {} is already closed'.format(poll_id))
+        logging.info('Poll does not exist anymore')
         return
 
-    msg_id = get_poll_msg_id(poll_id)
-    poll = polls[msg_id].set_closed(reason)
+    poll = get_poll(poll_id)
+    if poll.closed:
+        msg = 'Poll {} is already closed'.format(poll.id)
+        if update:
+            send_command_message(bot, update, msg)
+        else:
+            logging.info(msg)
+        return
+    
+    poll = poll.set_closed(reason)
+    chat_id = config.output_channel_id
     bot.edit_message_text(chat_id=chat_id,
-                          message_id=msg_id,
+                          message_id=get_poll_msg_id(poll.id),
                           text=poll.message(),
                           parse_mode='HTML')
 
@@ -230,8 +242,8 @@ def delete_all_polls(bot, update):
     send_message(bot, msg)
 
 
-def delete_poll_on_timer(bot, msg_id):
-    poll = polls[msg_id]
+def delete_poll_on_timer(bot, poll_id):
+    poll = get_poll(poll_id)
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
     if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
         logging.info('Poll is not deleted automatically because start time is earlier than now: {}')\
@@ -239,24 +251,9 @@ def delete_poll_on_timer(bot, msg_id):
         return
 
     # delete 1 hour after start time
-    time.sleep(delta.seconds + 3600)
-    __delete_poll(bot, msg_id)
+    time.sleep(delta.seconds + 2)
+    __delete_poll(bot, poll_id)
 
-
-def close_poll(bot, update, args):
-    if not authorized(bot, update):
-        return
-
-    try:
-        poll_id, reason = parse_args_close_poll(bot, update, args)
-    except ValueError as e:
-        logging.info(e)
-        return
-
-    __close_poll(bot, poll_id, reason, update)
-    
-    return
-    
 
 # TODO: almost the same code as close_poll    
 def parse_args_delete_poll(bot, update, args):
@@ -282,9 +279,9 @@ def delete_poll(bot, update, args):
         return
     
     # Check if the user that tries to delete a poll is the creator of that poll or an admin
-    msg_id = get_poll_msg_id(poll_id)
+    poll = get_poll(poll_id)
     user_name = update.message.from_user.name
-    own_poll = user_name == polls[msg_id].creator
+    own_poll = user_name == poll.creator
     if not own_poll and not admin(bot, update, print_warning=False):
         msg = '{}, you cannot delete polls that you did not create yourself'.format(user_name)
         send_command_message(bot, update, msg)
@@ -295,13 +292,12 @@ def delete_poll(bot, update, args):
 
 def __delete_poll(bot, poll_id, reason=None, update=None):
     if not poll_id_exists(poll_id):
-        logging.debug('Poll has already been deleted')
+        logging.info('Poll {} has already been deleted'.info(poll_id))
         return
 
-    msg_id = get_poll_msg_id(poll_id)
-    poll = polls[msg_id].set_deleted(reason)
-
+    poll = get_poll(poll_id).set_deleted(reason)
     chat_id = config.output_channel_id
+    msg_id = get_poll_msg_id(poll.id)
     bot.edit_message_text(chat_id=chat_id,
                           message_id=msg_id,
                           text=poll.message(),
@@ -316,6 +312,7 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
     else:
         msg = 'Automatically deleted a poll: {}.'.format(description)
         # don't print useless information to main chat!
+        logging.info(msg)
         bot.send_message(chat_id=config.input_chat_id, text=msg)
         
     del polls[msg_id]
