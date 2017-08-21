@@ -138,6 +138,7 @@ def start_poll(bot, update, args):
     polls[msg.message_id] = poll
 
     dispatcher.run_async(close_poll_on_timer, *(bot, msg.message_id))
+    dispatcher.run_async(delete_poll_on_timer, *(bot, msg.message_id))
    
 def close_poll_on_timer(bot, msg_id):
     poll = polls[msg_id]
@@ -149,6 +150,7 @@ def close_poll_on_timer(bot, msg_id):
 
     time.sleep(delta.seconds)
     __close_poll(bot, msg_id, 'start tijd verstreken')
+
 
 def parse_args_close_poll(bot, update, args):
     if len(args) < 1:
@@ -189,7 +191,6 @@ def __close_poll(bot, msg_id, reason=None, update=None):
 
     polls[msg_id].set_closed(reason)
     poll = polls[msg_id]
-    del polls[msg_id]
     bot.edit_message_text(chat_id=chat_id,
                           message_id=msg_id,
                           text=poll.message(),
@@ -216,6 +217,32 @@ def delete_all_polls(bot, update):
 
     msg = '{} deleted all polls.'.format(update.message.from_user.name)
     send_message(bot, msg)
+
+
+def close_poll_on_timer(bot, msg_id):
+    poll = polls[msg_id]
+    delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
+    if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
+        logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
+            .format(poll.description())
+        return
+
+    time.sleep(delta.seconds)
+    __close_poll(bot, msg_id, 'start tijd verstreken')
+
+
+def delete_poll_on_timer(bot, msg_id):
+    poll = polls[msg_id]
+    delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
+    if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
+        logging.info('Poll is not deleted automatically because start time is earlier than now: {}')\
+            .format(poll.description())
+        return
+
+    # delete 1 hour after start time
+    # time.sleep(delta.seconds + 3600)
+    time.sleep(delta.seconds + 10)
+    __delete_poll(bot, msg_id)
 
 
 def delete_poll(bot, update, args):
@@ -266,7 +293,7 @@ def __delete_poll(bot, msg_id, reason=None, update=None):
             msg += ' Reason: {}.'.format(reason)
         send_message(bot, msg)
     else:
-        msg = 'Automatically deleted a poll {}.'.format(description)
+        msg = 'Automatically deleted a poll: {}.'.format(description)
         send_message(bot, msg)
         
     del polls[msg_id]
