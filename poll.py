@@ -54,6 +54,7 @@ class Poll:
     show_names = [True, True, False]
     closed_text = 'GESLOTEN'
     closed_reason_text = 'Gesloten wegens:'
+    deleted_text = 'VERWIJDERD'
     created_by_text = 'Poll aangemaakt door'
     
     @staticmethod
@@ -72,6 +73,8 @@ class Poll:
         self.creator = creator
         self.closed = False
         self.closed_reason = None
+        self.deleted = False
+        self.delete_reason = None
 
         # self.present = Choice()
         # self.later = Choice()
@@ -86,10 +89,18 @@ class Poll:
         # disabled: image is too big on phones and we can't change the preview size
         # msg = '<a href=\"{}\">&#8205;</a>\n'.format(self.img_url)
         msg = ''
-        msg += '<b>{} {}{}</b>\n'.format(self.pokemon, self.time,
-            ' [{}]'.format(Poll.closed_text) if self.closed else '', self.location)
-        msg += '{}\n\n'.format(self.location)
+        msg += '<b>{} {}</b>'.format(self.pokemon, self.time)
+        if self.closed:
+            msg += ' <b>[{}]</b>'.format(Poll.closed_text)
+        elif self.deleted:
+            msg += ' <b>[{}]</b>'.format(Poll.deleted_text)
+        msg += '\n'
+        msg += '{}'.format(self.location)
         
+        if self.deleted:
+            return msg
+        
+        msg += '\n\n'
         weaknesses = []
         for weakness in pokedex.raid_bosses[self.pokemon.lower()]:
             weaknesses.append('<b>{}</b>'.format(weakness) if weakness[-2:]=='x2' else weakness)
@@ -130,3 +141,7 @@ class Poll:
     def set_closed(self, reason = None):
         self.closed = True
         self.closed_reason = reason
+        
+    def set_deleted(self, reason = None):
+        self.deleted = True
+        self.delete_reason = reason

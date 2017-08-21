@@ -171,7 +171,7 @@ def __close_poll(bot, msg_id, reason=None, update=None):
     bot.edit_message_text(chat_id=chat_id,
                           message_id=msg_id,
                           text=poll.message(),
-                          parse_mode='HTML')    
+                          parse_mode='HTML')
 
     chat_id = config.input_chat_id
     if update:
@@ -205,6 +205,7 @@ def delete_poll(bot, update, args):
     if not authorized(bot, update):
         return
 
+    # Check arguments
     chat_id = config.input_chat_id
     if len(args) < 1:
         msg = 'Incorrect format. Usage: /delete <id> (<reason>). For example: /delete 0, /delete 0 Wrong pokemon'
@@ -221,8 +222,8 @@ def delete_poll(bot, update, args):
     index = int(index)
 
     reason = ' '.join(args[1:]) if len(args) > 1 else None
-    print(reason)
     
+    # Check if the user that tries to delete a poll is the creator of that poll or an admin
     msg_id = sorted(polls)[index]
     poll = polls[msg_id]
     user_name = update.message.from_user.name
@@ -239,10 +240,14 @@ def delete_poll(bot, update, args):
 
 def __delete_poll(bot, msg_id, reason=None, update=None):
     chat_id = config.output_channel_id
-    bot.delete_message(chat_id=chat_id, message_id=msg_id)
-    description = polls[msg_id].description()
-    del polls[msg_id]
+    polls[msg_id].set_deleted(reason)
+    poll = polls[msg_id] # update
+    bot.edit_message_text(chat_id=chat_id,
+                          message_id=msg_id,
+                          text=poll.message(),
+                          parse_mode='HTML')
     
+    description = polls[msg_id].description()
     if update is not None:
         chat_id = update.message.chat_id
         msg = '{} deleted a poll: {}.'.format(update.message.from_user.name, description)
@@ -257,6 +262,8 @@ def __delete_poll(bot, msg_id, reason=None, update=None):
         logging.info(msg)
         bot.send_message(chat_id=chat_id, text=msg)
         bot.send_message(chat_id=config.output_chat_id, text=msg)
+        
+    del polls[msg_id]
 
 def list_polls(bot, update):
     if not authorized(bot, update):
