@@ -109,6 +109,7 @@ class Poll:
         msg += '{}'.format(self.location)
         
         if self.deleted:
+            msg += '\n#{}'.format(self.id_string())
             return msg
         
         msg += '\n\n'
@@ -129,7 +130,8 @@ class Poll:
                     msg += '  {}{}\n'.format(voter.name, suffix)
             msg += '\n'
 
-        msg += '{} {}'.format(Poll.created_by_text, self.creator)
+        msg += '{} {}\n'.format(Poll.created_by_text, self.creator)
+        msg += '#{}'.format(self.id_string())
         return msg
 
     def add_vote(self, name, choice):
