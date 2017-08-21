@@ -82,19 +82,14 @@ def admin(bot, update, print_warning=True):
         logging.warning('Unauthorized access from {} (not an admin)'.format(user_name))
     return False
 
-def poll_exists(poll_id : int):
-    for poll in polls.values():
-        if poll_id == poll.id:
-            return True
-    return False
-    
-def get_poll_msg_id(poll_id : int):
-    for msg_id, poll in polls.items():
-        if poll.id == poll_id:
-            return msg_id
+def poll_exists(id : int):
+    return id in polls
 
-def get_poll(poll_id : int):
-    return polls[get_poll_msg_id(poll_id)]
+def get_poll(msg_id):
+    for poll in polls.values():
+        if poll.message_id == msg_id:
+            return poll
+    raise ValueError('Poll with message_id {} does not exist!'.format(msg_id))
 
 def parse_poll_id_arg(bot, update, arg : str):
     id = arg.lstrip('#')
@@ -157,7 +152,8 @@ def start_poll(bot, update, args):
                            text=poll.message(),
                            reply_markup=poll.reply_markup(),
                            parse_mode='HTML')
-    polls[msg.message_id] = poll
+    poll.message_id = msg.message_id
+    polls[poll.id] = poll
 
     dispatcher.run_async(close_poll_on_timer, *(bot, poll.id))
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
@@ -165,7 +161,7 @@ def start_poll(bot, update, args):
     dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
    
 def close_poll_on_timer(bot, poll_id):
-    poll = get_poll(poll_id)
+    poll = polls[poll_id]
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
     if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
         logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
@@ -207,7 +203,8 @@ def __close_poll(bot, poll_id, reason=None, update=None):
         logging.info('Poll does not exist anymore')
         return
 
-    poll = get_poll(poll_id)
+    poll = polls[poll_id]
+    print(poll.message_id)
     if poll.closed:
         msg = 'Poll {} is already closed'.format(poll.id)
         if update:
@@ -219,7 +216,7 @@ def __close_poll(bot, poll_id, reason=None, update=None):
     poll.set_closed(reason)
     chat_id = config.output_channel_id
     bot.edit_message_text(chat_id=chat_id,
-                          message_id=get_poll_msg_id(poll.id),
+                          message_id=poll.message_id,
                           text=poll.message(),
                           parse_mode='HTML')
 
@@ -237,8 +234,8 @@ def delete_all_polls(bot, update):
         return
     
     chat_id = config.output_channel_id
-    for msg_id in polls.keys():
-        bot.delete_message(chat_id=chat_id, message_id=msg_id)
+    for poll in polls.values():
+        bot.delete_message(chat_id=chat_id, message_id=poll.message_id)
     polls.clear()
 
     msg = '{} deleted all polls.'.format(update.message.from_user.name)
@@ -246,7 +243,7 @@ def delete_all_polls(bot, update):
 
 
 def delete_poll_on_timer(bot, poll_id):
-    poll = get_poll(poll_id)
+    poll = polls[poll_id]
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
     if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
         logging.info('Poll is not deleted automatically because start time is earlier than now: {}')\
@@ -282,7 +279,7 @@ def delete_poll(bot, update, args):
         return
     
     # Check if the user that tries to delete a poll is the creator of that poll or an admin
-    poll = get_poll(poll_id)
+    poll = polls[poll_id]
     user_name = update.message.from_user.name
     own_poll = user_name == poll.creator
     if not own_poll and not admin(bot, update, print_warning=False):
@@ -298,12 +295,11 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
         logging.info('Poll {} has already been deleted'.info(poll_id))
         return
 
-    poll = get_poll(poll_id)
+    poll = polls[poll_id]
     poll.set_deleted(reason)
     chat_id = config.output_channel_id
-    msg_id = get_poll_msg_id(poll.id)
     bot.edit_message_text(chat_id=chat_id,
-                          message_id=msg_id,
+                          message_id=poll.message_id,
                           text=poll.message(),
                           parse_mode='HTML')
     
@@ -319,14 +315,14 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
         logging.info(msg)
         bot.send_message(chat_id=config.input_chat_id, text=msg)
         
-    del polls[msg_id]
+    del polls[poll_id]
 
 def list_polls(bot, update):
     if not authorized(bot, update):
         return
 
     msg = ''
-    for msg_id, poll in sorted(polls.items()):
+    for id, poll in sorted(polls.items()):
         msg += '{}\n'.format(poll.description())
 
     if not msg:
@@ -380,7 +376,7 @@ def test(bot, update):
 def vote_callback(bot, update):
     query = update.callback_query
     msg_id = query.message.message_id
-    poll = polls[msg_id]
+    poll = get_poll(msg_id)
     
     try:
         poll.add_vote(query.from_user.name, int(query.data))

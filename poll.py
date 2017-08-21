@@ -80,6 +80,8 @@ class Poll:
         self.closed_reason = None
         self.deleted = False
         self.delete_reason = None
+        
+        self.message_id = None
 
         # self.present = Choice()
         # self.later = Choice()
