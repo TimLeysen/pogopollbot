@@ -307,7 +307,7 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
                           text=poll.message(),
                           parse_mode='HTML')
     
-    description = polls[msg_id].description()
+    description = poll.description()
     if update is not None:
         msg = '{} deleted a poll: {}.'.format(update.message.from_user.name, description)
         if reason is not None:

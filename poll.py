@@ -87,7 +87,9 @@ class Poll:
 
     def description(self):
         desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon, self.time, self.location)
-        if self.closed:
+        if self.deleted:
+            desc += ' [{}]'.format(Poll.deleted_text)
+        elif self.closed:
             desc += ' [{}]'.format(Poll.closed_text)
         return desc
 
@@ -99,10 +101,10 @@ class Poll:
         # msg = '<a href=\"{}\">&#8205;</a>\n'.format(self.img_url)
         msg = ''
         msg += '<b>{} {}</b>'.format(self.pokemon, self.time)
-        if self.closed:
-            msg += ' <b>[{}]</b>'.format(Poll.closed_text)
-        elif self.deleted:
+        if self.deleted:
             msg += ' <b>[{}]</b>'.format(Poll.deleted_text)
+        elif self.closed:
+            msg += ' <b>[{}]</b>'.format(Poll.closed_text)
         msg += '\n'
         msg += '{}'.format(self.location)
         
