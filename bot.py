@@ -359,13 +359,22 @@ def help(bot, update):
           'Lists all polls. Shows each poll\'s id and description.'
     send_command_message(bot, update, msg)
 
+
+
+"""
+ADMIN COMMANDS
+"""
+    
 def chat_id(bot, update):
+    if not admin(bot, update, print_warning=False):
+        return
+
     chat_id = update.message.chat_id
     msg = 'This chat\'s id is {}'.format(chat_id)
     send_command_message(bot, update, msg)
 
 def test(bot, update):
-    if not authorized(bot, update):
+    if not authorized(bot, update) or not admin(bot, update):
         return
 
     pokemon = random.choice(list(pokedex.raid_bosses.keys()))
@@ -403,7 +412,12 @@ def load_state(bot, update):
     except Exception as e:
         send_command_message(bot, update, 'Failed to load state from file')
         logging.exception(e)
-    
+
+        
+        
+"""
+OTHER STUFF
+"""        
 def vote_callback(bot, update):
     query = update.callback_query
     msg_id = query.message.message_id
