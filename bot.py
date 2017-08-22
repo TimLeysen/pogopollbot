@@ -64,8 +64,11 @@ def authorized(bot, update):
 def private_chat(bot, update):
     return update.message.chat.type == Chat.PRIVATE
     
-# Test if a user is an admin
+# Test if a user is authorized and an admin
 def admin(bot, update, print_warning=True):
+    if not authorized(bot, update):
+        return
+
     chat_id = config.input_chat_id
     user_id = update.message.from_user.id
     try:
@@ -233,7 +236,7 @@ def __close_poll(bot, poll_id, reason=None, update=None):
 
     
 def delete_all_polls(bot, update):
-    if not authorized(bot, update) or not admin(bot, update):
+    if not admin(bot, update):
         return
     
     chat_id = config.output_channel_id
@@ -367,15 +370,12 @@ ADMIN COMMANDS
 """
     
 def chat_id(bot, update):
-    if not admin(bot, update, print_warning=False):
-        return
-
     chat_id = update.message.chat_id
     msg = 'This chat\'s id is {}'.format(chat_id)
     send_command_message(bot, update, msg)
 
 def test(bot, update):
-    if not authorized(bot, update) or not admin(bot, update):
+    if not admin(bot, update):
         return
 
     pokemon = random.choice(list(pokedex.raid_bosses.keys()))
@@ -386,7 +386,7 @@ def test(bot, update):
 
 data_file = 'data.pickle'
 def save_state(bot, update):
-    if not authorized(bot, update) or not admin(bot, update):
+    if not admin(bot, update):
         return
 
     try:
@@ -399,7 +399,7 @@ def save_state(bot, update):
         logging.exception(e)
         
 def load_state(bot, update):
-    if not authorized(bot, update) or not admin(bot, update):
+    if not admin(bot, update):
         return
 
     __load_state()
@@ -420,7 +420,7 @@ def __load_state():
         return False
 
 def quit(bot, update):
-    if not authorized(bot, update) or not admin(bot, update):
+    if not admin(bot, update):
         return
     
     save_state(bot, update)
