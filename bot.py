@@ -416,7 +416,7 @@ def test(bot, update):
         return
 
     pokemon = random.choice(list(pokedex.raid_bosses.keys()))
-    start_time = datetime.strftime(datetime.now() + timedelta(minutes=1), '%H:%M')
+    start_time = datetime.strftime(datetime.now() + timedelta(minutes=10), '%H:%M')
     start_poll(bot, update, [pokemon, start_time, 'TEST'])
     # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
     # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])

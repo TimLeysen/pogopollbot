@@ -2,12 +2,14 @@ import itertools
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
+import database
 import pokedex
 
 
 class Voter:
-    def __init__(self, name):
+    def __init__(self, name, level):
         self.name = name
+        self.level = level
         self.count = 1
 
     def add_player(self):
@@ -19,12 +21,12 @@ class Voters:
         self.voters = []
         return
 
-    def add(self, name):
+    def add(self, name, level):
         idx = self.__index_of(name)
         if idx != -1:
             self.voters[idx].add_player()
         else:
-            self.voters.append(Voter(name))
+            self.voters.append(Voter(name, level))
 
     def remove(self, name):
         idx = self.__index_of(name)
@@ -125,8 +127,9 @@ class Poll:
             msg += '<b>{}</b> [{}]\n'.format(Poll.options[i], voters.total_count())
             if Poll.show_names[i]:
                 for voter in voters.voters:
-                    suffix = ' ({})'.format(voter.count) if voter.count > 1 else ''
-                    msg += '  {}{}\n'.format(voter.name, suffix)
+                    prefix = '[Lvl {}]'.format(voter.level if voter.level >0 else '??')
+                    suffix = '({})'.format(voter.count) if voter.count > 1 else ''
+                    msg += '  {} {} {}\n'.format(prefix, voter.name, suffix)
             msg += '\n'
 
         msg += '{} {}\n'.format(Poll.created_by_text, self.creator)
@@ -137,7 +140,8 @@ class Poll:
         # clunky but whatever
         if choice is 0: # I can come
             # Multiple votes will increase a voter's player count
-            self.all_voters[0].add(name)
+            level = database.get_level(name)
+            self.all_voters[0].add(name, level)
         
         if choice is 1: # I can't come (anymore)
             # don't care about these users so don't store anything
