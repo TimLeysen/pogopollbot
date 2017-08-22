@@ -2,7 +2,6 @@ import itertools
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
-import database
 import pokedex
 
 
@@ -136,11 +135,10 @@ class Poll:
         msg += '#{}'.format(self.id_string())
         return msg
 
-    def add_vote(self, name, choice):
+    def add_vote(self, name, level, choice):
         # clunky but whatever
         if choice is 0: # I can come
             # Multiple votes will increase a voter's player count
-            level = database.get_level(name)
             self.all_voters[0].add(name, level)
         
         if choice is 1: # I can't come (anymore)

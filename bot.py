@@ -383,23 +383,24 @@ def set_level(bot, update, args):
         msg = 'Wrong format. Usage: /setlevel level. Example: /setlevel 30'
         send_command_message(bot, update, msg)
         return
+    
+    user = update.message.from_user
 
-    user_name = update.message.from_user.name
     level = args[0]
     try:
         level = int(level)
     except:
-        msg = '{}, your level should be a number!'.format(user_name)
+        msg = '{}, your level should be a number!'.format(user.name)
         send_command_message(bot, update, msg)
         return
         
     if level not in range(1,41):
-        msg = 'Please don\'t try to fool me {}. I\'m a smart Bulbasaur!'.format(user_name)
+        msg = 'Please don\'t try to fool me {}. I\'m a smart Bulbasaur!'.format(user.name)
         send_command_message(bot, update, msg)
         return
     
-    database.set_level(user_name, level)
-    msg = '{}, your level is now {}'.format(user_name, level)    
+    database.set_level(user.id, user.name, level)
+    msg = '{}, your level is now {}'.format(user.name, level)    
     send_command_message(bot, update, msg)
 
 """
@@ -487,8 +488,10 @@ def vote_callback(bot, update):
     msg_id = query.message.message_id
     poll = get_poll(msg_id)
     
+    level = database.get_level(query.from_user.id)
+    
     try:
-        poll.add_vote(query.from_user.name, int(query.data))
+        poll.add_vote(query.from_user.name, level, int(query.data))
     except KeyError as e:
         logging.info('User tried to vote for an old poll that is still open')
         return
