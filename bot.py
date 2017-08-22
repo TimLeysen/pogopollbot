@@ -1,12 +1,11 @@
 """
 BotFather /setdescription
 help - shows the help message. Example: /help
-setlevel - sets your trainer level. Example: /setlevel 40
 start - starts a poll. Example: /start Snorlax 13:00 Park
-close - closes a poll. Example: /close 0
+close - closes a poll. Example: /close 1 Not enough people
+delete - deletes a poll. Example: /delete 1 Wrong start time!
 list - lists all polls. Example: /list
-delete - deletes a poll. Example: /delete 0
-deleteall - deletes all polls (admin only). Example: /deleteall
+setlevel - sets your trainer level. Example: /setlevel 40
 """
 
 from datetime import datetime,timedelta
@@ -343,31 +342,33 @@ def help(bot, update):
     if not (private_chat(bot,update) or is_input_chat):
         return
 
-    msg = '/help\n'\
+    msg = '<b>/help</b>\n'\
           'Shows this message\n\n'\
           \
-          '/start <pokemon> <time> <location>\n'\
+          '<b>/start <pokemon> <time> <location></b>\n'\
           'Starts a new poll.\n'\
           'Example: /start Snorlax 13:30 Park Sint-Niklaas\n\n'\
           \
-          '/close <id>\n'\
-          'Closes a poll. You can see the poll ids by typing /list.\n'\
-          'Example: /close 0\n\n'\
+          '<b>/close <id> (<reason>)</b>\n'\
+          'Closes the poll with id <id>. You can add a reason (optional).\n'\
+          'You can see the poll ids by typing /list.\n'\
+          'Example: /close 8\n\n'\
           \
-          '/delete <id>\n'\
-          'Deletes a poll. You can see the poll ids by typing /list.\n'\
-          'Example: /delete 0\n\n'\
+          '<b>/delete <id> (<reason>)</b>\n'\
+          'Deletes the poll with id <id>. You can add a reason (optional).\n'\
+          'You can see the poll ids by typing /list.\n'\
+          'Example: /delete 8\n\n'\
           \
-          '/deleteall\n'\
-          'Deletes all polls.\n\n'\
-          \
-          '/list\n'\
+          '<b>/list</b>\n'\
           'Lists all polls. Shows each poll\'s id and description.\n\n'\
           \
-          '/setlevel\n'\
-          'Sets your trainer level\n'\
-          'Example: /setlevel 40'
-    send_command_message(bot, update, msg)
+          '<b>/setlevel <level></b>\n'\
+          'Sets your trainer level to <level>. <b>Only usable via private message</b>.\n'\
+          'Example: /setlevel 40\n\n'\
+          \
+          '<b>/deleteall</b>\n'\
+          'Deletes all polls. <b>Only usable by admins</b>.'
+    send_command_message(bot, update, msg, parse_mode='html')
 
     
     
