@@ -11,7 +11,8 @@ class Voter:
         self.level = level
         self.count = 1
 
-    def add_player(self):
+    def add_player(self, level):
+        self.level = level
         self.count +=1
 
 
@@ -23,7 +24,7 @@ class Voters:
     def add(self, name, level):
         idx = self.__index_of(name)
         if idx != -1:
-            self.voters[idx].add_player()
+            self.voters[idx].add_player(level)
         else:
             self.voters.append(Voter(name, level))
 
@@ -126,7 +127,7 @@ class Poll:
             msg += '<b>{}</b> [{}]\n'.format(Poll.options[i], voters.total_count())
             if Poll.show_names[i]:
                 for voter in voters.voters:
-                    prefix = '[Lvl {}]'.format(voter.level if voter.level >0 else '??')
+                    prefix = '[Lvl {}]'.format(str(voter.level).rjust(2, ' ') if voter.level>0 else '??')
                     suffix = '({})'.format(voter.count) if voter.count > 1 else ''
                     msg += '  {} {} {}\n'.format(prefix, voter.name, suffix)
             msg += '\n'
