@@ -49,7 +49,7 @@ class Voters:
 
 
 class Poll:
-    id_generator = itertools.count(0)
+    id_generator = itertools.count(1)
 
     # The vote count of the last option is not visualized!
     # This options is used to unsubscribe.
@@ -70,7 +70,7 @@ class Poll:
 
     def __init__(self, pokemon, time, location, creator):
         self.global_id = next(self.id_generator)
-        self.id = self.global_id%100 + 1
+        self.id = (self.global_id-1)%100 +1
         self.pokemon = pokemon
         self.img_url = 'http://floatzel.net/pokemon/black-white/sprites/images/{0}.png'\
                         .format(pokedex.get_id(pokemon))
