@@ -1,6 +1,7 @@
 """
 BotFather /setdescription
 help - shows the help message. Example: /help
+setlevel - sets your trainer level. Example: /setlevel 40
 start - starts a poll. Example: /start Snorlax 13:00 Park
 close - closes a poll. Example: /close 0
 list - lists all polls. Example: /list
@@ -22,6 +23,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
 
 import config
+import database
 import eastereggs
 import pokedex
 from poll import Poll
@@ -360,10 +362,45 @@ def help(bot, update):
           'Deletes all polls.\n\n'\
           \
           '/list\n'\
-          'Lists all polls. Shows each poll\'s id and description.'
+          'Lists all polls. Shows each poll\'s id and description.\n\n'\
+          \
+          '/setlevel\n'\
+          'Sets your trainer level\n'\
+          'Example: /setlevel 40'
     send_command_message(bot, update, msg)
 
+    
+    
+"""
+USER COMMANDS (PM)
+"""
 
+def set_level(bot, update, args):
+    if not private_chat(bot, update):
+        return
+
+    if len(args) != 1:
+        msg = 'Wrong format. Usage: /setlevel level. Example: /setlevel 30'
+        send_command_message(bot, update, msg)
+        return
+
+    user_name = update.message.from_user.name
+    level = args[0]
+    try:
+        level = int(level)
+    except:
+        msg = '{}, your level should be a number!'.format(user_name)
+        send_command_message(bot, update, msg)
+        return
+        
+    if level not in range(1,41):
+        msg = 'Please don\'t try to fool me {}. I\'m a smart Bulbasaur!'.format(user_name)
+        send_command_message(bot, update, msg)
+        return
+    
+    database.set_level(user_name, level)
+    msg = '{}, your level is now {}'.format(user_name, level)    
+    send_command_message(bot, update, msg)
 
 """
 ADMIN COMMANDS
@@ -519,6 +556,9 @@ dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
 dispatcher.add_handler(CommandHandler('help', help))
+
+# USER COMMANDS (PM)
+dispatcher.add_handler(CommandHandler('setlevel', set_level, pass_args=True))
 
 # ADMIN COMMANDS
 dispatcher.add_handler(CommandHandler('chatid', chat_id))
