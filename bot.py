@@ -10,6 +10,7 @@ deleteall - deletes all polls (admin only). Example: /deleteall
 
 from datetime import datetime,timedelta
 import logging
+import os
 import pickle
 import random
 import time
@@ -401,6 +402,9 @@ def load_state(bot, update):
     if not authorized(bot, update) or not admin(bot, update):
         return
 
+    __load_state()
+
+def __load_state():
     global polls
     
     try:
@@ -408,13 +412,36 @@ def load_state(bot, update):
             data = pickle.load(f)
             Poll.id_generator = data['id_generator']
             polls = data['polls']
-        send_command_message(bot, update, 'Loaded state from file')
+        logging.info('Loaded state from file')
+        return True
     except Exception as e:
-        send_command_message(bot, update, 'Failed to load state from file')
+        logging.error('Failed to load state from file')
         logging.exception(e)
+        return False
 
-        
-        
+def quit(bot, update):
+    if not authorized(bot, update) or not admin(bot, update):
+        return
+    
+    save_state(bot, update)
+    send_command_message(bot, update, 'Shutting down...')
+    os._exit(0)
+
+    
+    
+"""
+UNKNOWN COMMANDS
+"""
+def unknown_command(bot, update):
+    # setlevel command will be done in pm
+    if not authorized(bot, update) and not private_chat(bot,update):
+        return
+
+    msg = "Sorry, I didn't understand that command."
+    send_command_message(bot, update, msg)    
+
+    
+
 """
 OTHER STUFF
 """        
@@ -434,14 +461,6 @@ def vote_callback(bot, update):
                             reply_markup=poll.reply_markup(),
                             parse_mode='HTML')
     bot.answer_callback_query(query.id)
-
-def unknown_command(bot, update):
-    # setlevel command will be done in pm
-    if not authorized(bot, update) and not private_chat(bot,update):
-        return
-
-    msg = "Sorry, I didn't understand that command."
-    send_command_message(bot, update, msg)
 
 def member_joined(bot, update):
     new_members = update.message.new_chat_members
@@ -492,7 +511,7 @@ consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
 rootLogger.addHandler(consoleHandler)
 
-
+# USER COMMANDS
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
@@ -504,16 +523,20 @@ dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('chatid', chat_id))
 dispatcher.add_handler(CommandHandler('save', save_state))
 dispatcher.add_handler(CommandHandler('load', load_state))
-
+dispatcher.add_handler(CommandHandler('quit', quit))
 if config.test_version:
     dispatcher.add_handler(CommandHandler('test', test))
-dispatcher.add_handler(MessageHandler(Filters.chat(chat_id=config.input_chat_id), member_joined))
+
+# UNKNOWN COMMANDS
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
+# OTHER STUFF
 dispatcher.add_handler(CallbackQueryHandler(vote_callback))
-
+dispatcher.add_handler(MessageHandler(Filters.chat(chat_id=config.input_chat_id), member_joined))
 dispatcher.add_error_handler(error_callback)
 
+__load_state()
 updater.start_polling()
-logging.info('running!')
+logging.info('Ready to work!')
+updater.bot.send_message(chat_id=config.input_chat_id, text='Ready to work!')
 updater.idle()
