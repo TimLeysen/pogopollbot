@@ -4,20 +4,16 @@ import time
 
 chat_id = config.output_chat_id
 
-# sticker_set_name = 'Stickers'
-#sticker = bot.upload_sticker_file(user_id=, png_sticker='icons/cookie.png')
-# bot.create_new_sticker_set(user_id=,name='cookie', title=sticker_set_name)
-# bot.add_sticker_to_set(user_id, name=sticker_set_name, png_sticker = 'icons/cookie.png')
-
 def print_countdown(bot, i):
     bot.send_message(chat_id=chat_id, text=str(5-i))
-
+    
 def check_poll_count(bot, count):
-    # time.sleep(5)
+    time.sleep(5)
+
     if count == 100:
-        msg = '100 raids? Here, have a cookie!'
+        cookie = u'\U0001F36A'
+        msg = '100 raids? Here, have a cookie! {}'.format(cookie)
         bot.send_message(chat_id=chat_id, text=msg)
-        # bot.send_photo(chat_id=chat_id, photo='icons/cookie.png')
         return
         
     if count == 200:
@@ -30,7 +26,6 @@ def check_poll_count(bot, count):
         with open('ascii_pikachu.txt', 'r') as f:
             msg += f.read()
         bot.send_message(chat_id=chat_id, text=msg)
-        # bot.send_photo(chat_id=chat_id, photo='icons/bulbasaur_sleeping.png')
         return
         
     if count == 400:
