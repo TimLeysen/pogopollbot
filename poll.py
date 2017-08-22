@@ -52,9 +52,8 @@ class Poll:
     # The vote count of the last option is not visualized!
     # This options is used to unsubscribe.
     options = ['Ik kom',
-               'Ik kan pas later (volgende groep)',
                'Ik kom niet meer']
-    show_names = [True, True, False]
+    show_names = [True, False]
     closed_text = 'GESLOTEN'
     closed_reason_text = 'Gesloten wegens:'
     deleted_text = 'VERWIJDERD'
@@ -83,10 +82,7 @@ class Poll:
         
         self.message_id = None
 
-        # self.present = Choice()
-        # self.later = Choice()
-        # self.not_present = Choice()
-        self.all_voters = [Voters(), Voters()]
+        self.all_voters = [Voters()]
 
     def description(self):
         desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon, self.time, self.location)
@@ -142,17 +138,10 @@ class Poll:
         if choice is 0: # I can come
             # Multiple votes will increase a voter's player count
             self.all_voters[0].add(name)
-            self.all_voters[1].remove(name)
-
-        if choice is 1: # I can come later (other group)
-            # Multiple votes will increase a voter's player count
-            self.all_voters[0].remove(name)
-            self.all_voters[1].add(name)
         
-        if choice is 2: # I can't come (anymore)
+        if choice is 1: # I can't come (anymore)
             # don't care about these users so don't store anything
             self.all_voters[0].remove(name)
-            self.all_voters[1].remove(name)
         
     def set_closed(self, reason = None):
         self.closed = True

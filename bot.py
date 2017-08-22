@@ -457,6 +457,7 @@ def vote_callback(bot, update):
         return
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
+    # seems to be the way how long polling works...
     query.edit_message_text(text=poll.message(),
                             reply_markup=poll.reply_markup(),
                             parse_mode='HTML')
