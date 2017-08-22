@@ -342,33 +342,33 @@ def help(bot, update):
     if not (private_chat(bot,update) or is_input_chat):
         return
 
-    msg = '<b>/help</b>\n'\
+    msg = '/help\n'\
           'Shows this message\n\n'\
           \
-          '<b>/start <pokemon> <time> <location></b>\n'\
+          '/start <pokemon> <time> <location>\n'\
           'Starts a new poll.\n'\
           'Example: /start Snorlax 13:30 Park Sint-Niklaas\n\n'\
           \
-          '<b>/close <id> (<reason>)</b>\n'\
+          '/close <id> (<reason>)\n'\
           'Closes the poll with id <id>. You can add a reason (optional).\n'\
           'You can see the poll ids by typing /list.\n'\
-          'Example: /close 8\n\n'\
+          'Example: /close 8 not enough players\n\n'\
           \
-          '<b>/delete <id> (<reason>)</b>\n'\
+          '/delete <id> (<reason>)\n'\
           'Deletes the poll with id <id>. You can add a reason (optional).\n'\
           'You can see the poll ids by typing /list.\n'\
-          'Example: /delete 8\n\n'\
+          'Example: /delete 8 wrong pokemon name\n\n'\
           \
-          '<b>/list</b>\n'\
+          '/list\n'\
           'Lists all polls. Shows each poll\'s id and description.\n\n'\
           \
-          '<b>/setlevel <level></b>\n'\
-          'Sets your trainer level to <level>. <b>Only usable via private message</b>.\n'\
+          '/setlevel <level>\n'\
+          'Sets your trainer level to <level>. Only usable via private message.\n'\
           'Example: /setlevel 40\n\n'\
           \
-          '<b>/deleteall</b>\n'\
-          'Deletes all polls. <b>Only usable by admins</b>.'
-    send_command_message(bot, update, msg, parse_mode='html')
+          '/deleteall\n'\
+          'Deletes all polls. Only usable by admins.'
+    send_command_message(bot, update, msg)
 
     
     
