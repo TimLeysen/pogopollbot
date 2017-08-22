@@ -60,6 +60,9 @@ def authorized(bot, update):
         return False
     return True
 
+def private_chat(bot, update):
+    return update.message.chat.type == Chat.PRIVATE
+    
 # Test if a user is an admin
 def admin(bot, update, print_warning=True):
     chat_id = config.input_chat_id
@@ -330,9 +333,8 @@ def list_polls(bot, update):
     send_command_message(bot, update, msg)
 
 def help(bot, update):
-    is_private_chat = update.message.chat.type == Chat.PRIVATE
     is_input_chat = update.message.chat_id == config.input_chat_id
-    if not (is_private_chat or is_input_chat):
+    if not (private_chat(bot,update) or is_input_chat):
         return
 
     msg = '/help\n'\
@@ -420,6 +422,10 @@ def vote_callback(bot, update):
     bot.answer_callback_query(query.id)
 
 def unknown_command(bot, update):
+    # setlevel command will be done in pm
+    if not authorized(bot, update) and not private_chat(bot,update):
+        return
+
     msg = "Sorry, I didn't understand that command."
     send_command_message(bot, update, msg)
 
