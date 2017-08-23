@@ -507,12 +507,21 @@ def vote_callback(bot, update):
     except KeyError as e:
         logging.info('User tried to vote for an old poll that is still open')
         return
+        
+    logging.info('{} voted {} on poll {} with message id {}'\
+        .format(query.from_user.name, query.data, poll.id, poll.message_id))
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
-    # seems to be the way how long polling works...
-    query.edit_message_text(text=poll.message(),
-                            reply_markup=poll.reply_markup(),
-                            parse_mode='Markdown')
+    # seems to be the way how long polling works?
+    try:
+        query.edit_message_text(text=poll.message(),
+                                reply_markup=poll.reply_markup(),
+                                parse_mode='Markdown')
+    except Exception as e:
+        logging.error('Failed to edit message after a vote for poll {} with message id {}'\
+                        .format(poll.id, poll.message_id))
+        logging.exception(e)
+
     bot.answer_callback_query(query.id)
 
 def member_joined(bot, update):
