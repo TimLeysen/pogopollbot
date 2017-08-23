@@ -106,6 +106,15 @@ def parse_poll_id_arg(bot, update, arg : str):
         raise ValueError('Incorrect format: unknown poll id')
     return int(id)
 
+def update_poll_message(bot, poll):
+    chat_id = config.output_channel_id
+    try:
+        bot.edit_message_text(chat_id=chat_id, message_id=poll.message_id,
+                              text=poll.message(), parse_mode='HTML')
+    except Exception as e:
+        logging.error('Failed to edit message text for poll {} with message id {}'\
+                        .format(poll.id, poll.message_id))
+        logging.exception(e)
 
 """
 Bot commands
@@ -211,7 +220,6 @@ def __close_poll(bot, poll_id, reason=None, update=None):
         return
 
     poll = polls[poll_id]
-    print(poll.message_id)
     if poll.closed:
         msg = 'Poll {} is already closed'.format(poll.id)
         if update:
@@ -221,11 +229,7 @@ def __close_poll(bot, poll_id, reason=None, update=None):
         return
     
     poll.set_closed(reason)
-    chat_id = config.output_channel_id
-    bot.edit_message_text(chat_id=chat_id,
-                          message_id=poll.message_id,
-                          text=poll.message(),
-                          parse_mode='HTML')
+    update_poll_message(bot, poll)
 
     if update:
         msg = '{} closed a poll: {}.'.format(update.message.from_user.name, poll.description())
@@ -308,11 +312,7 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
 
     poll = polls[poll_id]
     poll.set_deleted(reason)
-    chat_id = config.output_channel_id
-    bot.edit_message_text(chat_id=chat_id,
-                          message_id=poll.message_id,
-                          text=poll.message(),
-                          parse_mode='HTML')
+    update_poll_message(bot, poll)
     
     description = poll.description()
     if update is not None:
