@@ -242,7 +242,11 @@ def delete_all_polls(bot, update):
     
     chat_id = config.output_channel_id
     for poll in polls.values():
-        bot.delete_message(chat_id=chat_id, message_id=poll.message_id)
+        try:
+            bot.delete_message(chat_id=chat_id, message_id=poll.message_id)
+        except Exception as e:
+            logging.error('Failed to delete poll {} with message id {}'.format(poll.id, poll.message_id)
+            logging.exception(e)
     polls.clear()
 
     msg = '{} deleted all polls.'.format(update.message.from_user.name)
