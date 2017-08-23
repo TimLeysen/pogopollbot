@@ -487,7 +487,7 @@ def unknown_command(bot, update):
     if not authorized(bot, update) and not private_chat(bot,update):
         return
 
-    msg = "Sorry, I didn't understand that command."
+    msg = "Sorry, that command is unown to me."
     send_command_message(bot, update, msg)    
 
     
