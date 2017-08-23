@@ -26,6 +26,7 @@ import database
 import eastereggs
 import pokedex
 from poll import Poll
+from starttimepoll import StartTimePoll
 
 
 
@@ -182,7 +183,39 @@ def start_poll(bot, update, args):
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
     
     dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
-   
+
+    
+def start_time_vote(bot, update, args):
+    if not authorized(bot, update):
+        return
+
+    # FIXME error msgs!
+    try:
+        pokemon, timer, location = parse_args_start_poll(bot, update, args)
+    except ValueError as e:
+        logging.info(e)
+        return
+
+    creator = update.message.from_user.name
+    poll = StartTimePoll(pokemon, timer, location, creator)
+
+    try:
+        msg = bot.send_message(chat_id=config.output_channel_id,
+                               text=poll.message(),
+                               reply_markup=poll.reply_markup(),
+                               parse_mode='Markdown')
+    except Exception as e:
+        logging.error('Failed to create poll message for poll {}'.format(poll.id))
+        logging.exception(e)
+        return
+        
+    # poll.message_id = msg.message_id
+    # polls[poll.id] = poll
+    
+    msg = '{} created a start time vote: {}.'.format(creator, poll.description())
+    send_message(bot, msg)
+    
+    
 def close_poll_on_timer(bot, poll_id):
     poll = polls[poll_id]
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
@@ -575,6 +608,7 @@ rootLogger.addHandler(consoleHandler)
 
 # USER COMMANDS
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
+dispatcher.add_handler(CommandHandler('starttimevote', start_time_vote, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
