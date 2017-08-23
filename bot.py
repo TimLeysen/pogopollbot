@@ -161,15 +161,22 @@ def start_poll(bot, update, args):
 
     creator = update.message.from_user.name
     poll = Poll(pokemon, start_time, location, creator)
-    msg = '{} created a poll: {}.'.format(creator, poll.description())
-    send_message(bot, msg)
 
-    msg = bot.send_message(chat_id=config.output_channel_id,
-                           text=poll.message(),
-                           reply_markup=poll.reply_markup(),
-                           parse_mode='Markdown')
+    try:
+        msg = bot.send_message(chat_id=config.output_channel_id,
+                               text=poll.message(),
+                               reply_markup=poll.reply_markup(),
+                               parse_mode='Markdown')
+    except Exception as e:
+        logging.error('Failed to create poll message for poll {}'.format(poll.id))
+        logging.exception(e)
+        return
+        
     poll.message_id = msg.message_id
     polls[poll.id] = poll
+    
+    msg = '{} created a poll: {}.'.format(creator, poll.description())
+    send_message(bot, msg)
 
     dispatcher.run_async(close_poll_on_timer, *(bot, poll.id))
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
