@@ -377,12 +377,12 @@ USER COMMANDS (PM)
 """
 
 def set_level(bot, update, args):
-    # if not private_chat(bot, update):
-        # return
+    if not private_chat(bot, update):
+        return
 
     if len(args) != 1:
-        # msg = 'Wrong format. Usage: /setlevel level. Example: /setlevel 30'
-        # send_command_message(bot, update, msg)
+        msg = 'Wrong format. Usage: /setlevel level. Example: /setlevel 30'
+        send_command_message(bot, update, msg)
         return
     
     user = update.message.from_user
@@ -391,8 +391,8 @@ def set_level(bot, update, args):
     try:
         level = int(level)
     except:
-        # msg = '{}, your level should be a number!'.format(user.name)
-        # send_command_message(bot, update, msg)
+        msg = '{}, your level should be a number!'.format(user.name)
+        send_command_message(bot, update, msg)
         return
         
     if level not in range(1,41):
