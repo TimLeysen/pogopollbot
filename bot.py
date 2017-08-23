@@ -110,7 +110,7 @@ def update_poll_message(bot, poll):
     chat_id = config.output_channel_id
     try:
         bot.edit_message_text(chat_id=chat_id, message_id=poll.message_id,
-                              text=poll.message(), parse_mode='HTML')
+                              text=poll.message(), parse_mode='Markdown')
     except Exception as e:
         logging.error('Failed to edit message text for poll {} with message id {}'\
                         .format(poll.id, poll.message_id))
@@ -167,7 +167,7 @@ def start_poll(bot, update, args):
     msg = bot.send_message(chat_id=config.output_channel_id,
                            text=poll.message(),
                            reply_markup=poll.reply_markup(),
-                           parse_mode='HTML')
+                           parse_mode='Markdown')
     poll.message_id = msg.message_id
     polls[poll.id] = poll
 
@@ -249,7 +249,7 @@ def delete_all_polls(bot, update):
         try:
             bot.delete_message(chat_id=chat_id, message_id=poll.message_id)
         except Exception as e:
-            logging.error('Failed to delete poll {} with message id {}'.format(poll.id, poll.message_id)
+            logging.error('Failed to delete poll {} with message id {}'.format(poll.id, poll.message_id))
             logging.exception(e)
     polls.clear()
 
@@ -505,7 +505,7 @@ def vote_callback(bot, update):
     # seems to be the way how long polling works...
     query.edit_message_text(text=poll.message(),
                             reply_markup=poll.reply_markup(),
-                            parse_mode='HTML')
+                            parse_mode='Markdown')
     bot.answer_callback_query(query.id)
 
 def member_joined(bot, update):

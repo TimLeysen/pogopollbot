@@ -101,11 +101,11 @@ class Poll:
         # disabled: image is too big on phones and we can't change the preview size
         # msg = '<a href=\"{}\">&#8205;</a>\n'.format(self.img_url)
         msg = ''
-        msg += '<b>{} {}</b>'.format(self.pokemon, self.time)
+        msg += '*{} {}*'.format(self.pokemon, self.time)
         if self.deleted:
-            msg += ' <b>[{}]</b>'.format(Poll.deleted_text)
+            msg += ' *[{}]*'.format(Poll.deleted_text)
         elif self.closed:
-            msg += ' <b>[{}]</b>'.format(Poll.closed_text)
+            msg += ' *[{}]*'.format(Poll.closed_text)
         msg += '\n'
         msg += '{}'.format(self.location)
         
@@ -116,7 +116,7 @@ class Poll:
         msg += '\n\n'
         weaknesses = []
         for weakness in pokedex.raid_bosses[self.pokemon.lower()]:
-            weaknesses.append('<b>{}</b>'.format(weakness) if weakness[-2:]=='x2' else weakness)
+            weaknesses.append('*{}*'.format(weakness) if weakness[-2:]=='x2' else weakness)
         msg += 'Weaknesses: {}\n\n'.format(', '.join(weaknesses))
         
         if self.closed:
@@ -124,7 +124,7 @@ class Poll:
         
         for i in range(0, len(self.all_voters)):
             voters = self.all_voters[i]
-            msg += '<b>{}</b> [{}]\n'.format(Poll.options[i], voters.total_count())
+            msg += '*{}* [{}]\n'.format(Poll.options[i], voters.total_count())
             if Poll.show_names[i]:
                 for voter in voters.voters:
                     prefix = '[Lvl {}]'.format(str(voter.level).rjust(2, ' ') if voter.level>0 else '??')
