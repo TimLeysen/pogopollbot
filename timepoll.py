@@ -82,7 +82,7 @@ class TimePoll(Poll):
         msg += '<b>{}</b> (tot {})'.format(self.pokemon, to_string(self.end_time))
         if self.deleted:
             msg += ' <b>[{}]</b>'.format(self.deleted_text)        
-        if self.closed:
+        elif self.closed:
             msg += ' <b>[{}]</b>'.format(self.closed_text)
         msg += '\n'
         msg += '{}'.format(self.location)
