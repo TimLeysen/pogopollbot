@@ -187,7 +187,8 @@ def __start_poll(pokemon, start_time, location, creator):
     poll.message_id = msg.message_id
     polls[poll.id] = poll
     
-    msg = '{} created a poll: {}.'.format(creator, poll.description())
+    msg = '{} created a poll: {}.\n'.format(creator, poll.description())
+    msg += 'You can subscribe in {}'.format(config.output_channel_id)
     send_message(bot, msg)
 
     dispatcher.run_async(close_poll_on_timer, *(bot, poll.id))
