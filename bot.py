@@ -131,7 +131,7 @@ def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_t
     if not pokedex.name_exists(pokemon):
         msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
         send_command_message(bot, update, msg)
-        raise ValueError('{} is not a Pokemon'.format(pokemon))
+        raise ValueError('Passed argument is not a Pokemon')
 
     # not needed and would require code changes when raid bosses change
     # if not pokedex.is_raid_boss(args[0]):
@@ -143,7 +143,7 @@ def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_t
     except:
         msg = 'Incorrect time format. Expected HH:MM. For example: 13:00'
         send_command_message(bot, update, msg)
-        raise ValueError('Incorrect time format: {}'.format(start_time))
+        raise ValueError('Incorrect time format. Expected HH:MM.')
 
     location = ' '.join(args[2:])
 
@@ -189,7 +189,7 @@ def start_time_vote(bot, update, args):
     if not authorized(bot, update):
         return
 
-    # FIXME error msgs!
+    # FIXME error msgs! define custom exceptions Class MyException(Exception): pass
     try:
         pokemon, timer, location = parse_args_start_poll(bot, update, args)
     except ValueError as e:
