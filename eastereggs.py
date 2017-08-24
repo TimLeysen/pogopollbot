@@ -8,42 +8,43 @@ def print_countdown(bot, i):
     bot.send_message(chat_id=chat_id, text=str(5-i))
     
 def check_poll_count(bot, count):
+    print('check count {}'.format(count))
     time.sleep(5)
 
     if count == 100:
         cookie = u'\U0001F36A'
-        msg = '100 raids? Here, have a cookie! {}'.format(cookie)
+        msg = '100 polls? Here, have a cookie! {}'.format(cookie)
         bot.send_message(chat_id=chat_id, text=msg)
         return
         
     if count == 200:
-        msg = '200 raids! Sorry, I am out of cookies ( ._.)'
+        msg = '200 polls! Sorry, I am out of cookies ( ._.)'
         bot.send_message(chat_id=chat_id, text=msg)
         return
         
     if count == 300:
-        msg = 'Wow 300 raids! Slightly impressive! Here\'s a badly drawn Pikachu:\n'
+        msg = '300 polls?! Here\'s a badly drawn Pikachu:\n'
         with open('ascii_pikachu.txt', 'r') as f:
             msg += f.read()
         bot.send_message(chat_id=chat_id, text=msg)
         return
         
     if count == 400:
-        msg = '400 raids??!! Congrats Trainer, you\'re more than halfway to Level 31! '\
+        msg = '400 polls?! Congrats Trainer, you\'re more than halfway to Level 31! '\
               'Join millions of Pokemon GO trainers leveling up this week.'
         bot.send_message(chat_id=chat_id, text=msg)
         return
         
     if count == 500:
-        bot.send_message(chat_id=chat_id, text='Wow 500 raids!!! 500???! RAIDS!?!?!?')
+        bot.send_message(chat_id=chat_id, text='Wow 500 polls!!!')
         time.sleep(2)
-        bot.send_message(chat_id=chat_id, text='..................')
+        # bot.send_message(chat_id=chat_id, text='BLEEP BLOOP')
+        # time.sleep(2)
+        bot.send_message(chat_id=chat_id, text='Finally! My job here is done!')
+        time.sleep(2)
+        bot.send_message(chat_id=chat_id, text='Goodbye trainers...')
         time.sleep(2)        
-        bot.send_message(chat_id=chat_id, text='BLEEP BLOOP!')
-        time.sleep(2)
-        bot.send_message(chat_id=chat_id, text='TOO MANY RAIDS TO HANDLE!?@#!_')
-        time.sleep(2)
-        bot.send_message(chat_id=chat_id, text='!#$%+3;$ SELF DESTRUCT$&@ING+;...')
+        bot.send_message(chat_id=chat_id, text='SELF DESTRUCTING...')
         for i in range(0,5):
             time.sleep(1)
             print_countdown(bot, i)
@@ -52,5 +53,5 @@ def check_poll_count(bot, count):
         return
         
     if count == 1000:
-        bot.send_message(chat_id=chat_id, text='1000 raids! You make me proud!')
+        bot.send_message(chat_id=chat_id, text='1000 polls! You make me proud!')
         return
