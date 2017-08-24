@@ -470,6 +470,9 @@ def report_raid(bot, update, args):
     send_message(bot, msg)
     
     dispatcher.run_async(close_poll_on_timer, *(bot, poll.id))
+    dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
+    
+    dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
     
 
 # def __parse_args_delete_raid(bot, update, args):
