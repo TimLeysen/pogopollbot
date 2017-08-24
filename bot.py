@@ -583,15 +583,13 @@ def test(bot, update):
         return
 
     pokemon = random.choice(list(pokedex.raid_bosses.keys()))
-    # start_time = datetime.strftime(datetime.now() + timedelta(minutes=10), '%H:%M')
-    # start_poll(bot, update, [pokemon, start_time, 'TEST'])
+    start_time = datetime.strftime(datetime.now() + timedelta(minutes=10), '%H:%M')
+    start_poll(bot, update, [pokemon, start_time, 'TEST'])
     # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
     # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
     
-    # h = random.randrange(1, 2)
-    # m = random.randrange(0, 60)
-    h = 0
-    m = 1
+    h = random.randrange(1, 2)
+    m = random.randrange(0, 60)
     timer = '{}:{}'.format(h, str(m).zfill(2))
     report_raid(bot, update, [pokemon, timer, 'TEST'])
 

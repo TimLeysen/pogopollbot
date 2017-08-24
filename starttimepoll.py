@@ -7,6 +7,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import zope.event
 
 import pokedex
+from poll import Poll
 
 def from_string(t : str):
     return datetime.strptime(t, '%H:%M')
@@ -20,30 +21,17 @@ class VoteCountReachedEvent:
         self.poll_id = poll_id
         self.start_time = start_time
     
-class StartTimePoll:
-    id_generator = itertools.count(0)
+class StartTimePoll(Poll):
     # min_votes = 5
     min_votes = 1 # TODO
     
-    closed_text = 'GESLOTEN'
-    closed_reason_text = 'Gesloten wegens:'
-    deleted_text = 'VERWIJDERD'
-    created_by_text = 'Poll aangemaakt door'    
-    
     def __init__(self, pokemon, timer : timedelta, location, creator):
-        # we have to use a separate id from the normal polls
-        # showing it will be confusing!
-        self.id = next(self.id_generator)%100
+        super().__init__(creator)
+        
         self.pokemon = pokemon
         self.end_time = datetime.now() + timer
         self.location = location
-        self.creator = creator        
-        
-        self.closed = False
-        self.closed_reason = None
-        self.deleted = False
-        self.delete_reason = None        
-        
+              
         self.times = {} # key: start time, value: number of votes
         for time in self.__calc_start_times(self.end_time):
             self.times[time] = {} # keys: user id, values: user names
@@ -83,13 +71,8 @@ class StartTimePoll:
         return InlineKeyboardMarkup([row])
         
     def description(self):
-        # Don't print id? it will be confusing...
         desc = '#{} {} {} (ends: {})'.format(self.id_string(), self.pokemon, self.location, to_string(self.end_time))
-        # desc = '{} {} (ends: {})'.format(self.pokemon, self.location, to_string(self.end_time))
         return desc
-        
-    def id_string(self):
-        return str(self.id).zfill(3)
 
     def message(self):
         msg = ''
@@ -127,12 +110,4 @@ class StartTimePoll:
             logging.debug('posting VoteCountReachedEvent({}, {})'.format(self.id, user_time))
             zope.event.notify(VoteCountReachedEvent(self.id, user_time))
 
-        return changed
-        
-    def set_closed(self, reason = None):
-        self.closed = True
-        self.closed_reason = reason
-        
-    def set_deleted(self, reason = None):
-        self.deleted = True
-        self.delete_reason = reason        
+        return changed    
