@@ -48,7 +48,7 @@ class Voters:
         return -1
 
 
-class Poll:
+class RaidPoll:
     id_generator = itertools.count(1)
 
     # The vote count of the last option is not visualized!

@@ -26,7 +26,7 @@ import config
 import database
 import eastereggs
 import pokedex
-from poll import Poll
+from raidpoll import RaidPoll
 from starttimepoll import StartTimePoll, VoteCountReachedEvent
 
 
@@ -34,7 +34,7 @@ from starttimepoll import StartTimePoll, VoteCountReachedEvent
 updater = Updater(config.bot_token)
 dispatcher = updater.dispatcher
 
-# key: Poll.id, value: Poll
+# key: RaidPoll.id, value: RaidPoll
 polls = {}
 # key: StartTimePoll.id, value: StartTimePoll
 time_polls = {}
@@ -108,7 +108,7 @@ def get_poll(msg_id):
     for poll in polls.values():
         if poll.message_id == msg_id:
             return poll
-    raise ValueError('Poll with message_id {} does not exist!'.format(msg_id))
+    raise ValueError('RaidPoll with message_id {} does not exist!'.format(msg_id))
     
 def get_time_poll(msg_id):
     for poll in time_polls.values():
@@ -190,7 +190,7 @@ def start_poll(bot, update, args):
 
 def __start_poll(pokemon, start_time, location, creator):
     bot = updater.bot
-    poll = Poll(pokemon, start_time, location, creator)
+    poll = RaidPoll(pokemon, start_time, location, creator)
 
     try:
         msg = bot.send_message(chat_id=config.output_channel_id,
@@ -220,7 +220,7 @@ def close_poll_on_timer(bot, poll_id):
     poll = polls[poll_id]
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
     if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
-        logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
+        logging.info('RaidPoll is not closed automatically because start time is earlier than now: {}')\
             .format(poll.description())
         return
 
@@ -232,7 +232,7 @@ def close_time_poll_on_timer(bot, poll_id): # TODO duplicate code
     poll = time_polls[poll_id]
     delta = poll.end_time - datetime.now()
     if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
-        logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
+        logging.info('RaidPoll is not closed automatically because start time is earlier than now: {}')\
             .format(poll.description())
         return
 
@@ -268,12 +268,12 @@ def close_poll(bot, update, args):
 # TODO: id exists is checked in close_poll (user command) but also here...
 def __close_poll(bot, polls, poll_id, reason=None, update=None):
     if poll_id not in polls:
-        logging.info('Poll does not exist anymore')
+        logging.info('RaidPoll does not exist anymore')
         return
 
     poll = polls[poll_id]
     if poll.closed:
-        msg = 'Poll {} is already closed'.format(poll.id)
+        msg = 'RaidPoll {} is already closed'.format(poll.id)
         if update:
             send_command_message(bot, update, msg)
         else:
@@ -313,7 +313,7 @@ def delete_poll_on_timer(bot, poll_id):
     poll = polls[poll_id]
     delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
     if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
-        logging.info('Poll is not deleted automatically because start time is earlier than now: {}')\
+        logging.info('RaidPoll is not deleted automatically because start time is earlier than now: {}')\
             .format(poll.description())
         return
 
@@ -359,7 +359,7 @@ def delete_poll(bot, update, args):
 
 def __delete_poll(bot, poll_id, reason=None, update=None):
     if not poll_exists(poll_id):
-        logging.info('Poll {} has already been deleted'.info(poll_id))
+        logging.info('RaidPoll {} has already been deleted'.info(poll_id))
         return
 
     poll = polls[poll_id]
@@ -602,7 +602,7 @@ def save_state(bot, update):
 
     try:
         with open(data_file, 'wb') as f:
-            data = {'id_generator' : Poll.id_generator, 'polls' : polls}
+            data = {'id_generator' : RaidPoll.id_generator, 'polls' : polls}
             pickle.dump(data, f)
         send_command_message(bot, update, 'Saved state to file')
     except Exception as e:
@@ -621,7 +621,7 @@ def __load_state():
     try:
         with open(data_file, 'rb') as f:
             data = pickle.load(f)
-            Poll.id_generator = data['id_generator']
+            RaidPoll.id_generator = data['id_generator']
             polls = data['polls']
         logging.info('Loaded state from file')
         return True
