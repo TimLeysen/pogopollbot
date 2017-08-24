@@ -447,6 +447,10 @@ def report_raid(bot, update, args):
 
     creator = update.message.from_user.name
     poll = TimePoll(pokemon, end_time, location, creator)
+    if not poll.times:
+        msg = 'Unable to choose proper start times. Please create a poll manually!'
+        send_command_message(bot, update, msg)
+        return
 
     try:
         msg = bot.send_message(chat_id=config.output_channel_id,
