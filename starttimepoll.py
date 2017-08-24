@@ -83,13 +83,13 @@ class StartTimePoll:
 
     def message(self):
         msg = ''
-        msg += '*{}* (tot {})\n'.format(self.pokemon, to_string(self.end_time))
+        msg += '<b>{}</b> (tot {})\n'.format(self.pokemon, to_string(self.end_time))
         msg += '{}\n'.format(self.location)
         msg += '\n'
+        msg += 'Hier kan je stemmen voor de start tijd.\n'
+        msg += 'Vanaf vijf stemmen voor een bepaalde tijd wordt er een raid poll aangemaakt voor die tijd.\n'
         for time, voters in self.times.items():
-            msg += '*{}* [{}]: {}\n'.format(time, len(voters), ', '.join(voters.values()))
-        msg += '\n'
-        msg += 'Er wordt automatisch een poll aangemaakt na 5 stemmen.'
+            msg += '<b>{}</b> [{}]: {}\n'.format(time, len(voters), ', '.join(voters.values()))
         
         return msg
     

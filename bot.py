@@ -128,7 +128,7 @@ def update_poll_message(bot, poll):
     chat_id = config.output_channel_id
     try:
         bot.edit_message_text(chat_id=chat_id, message_id=poll.message_id,
-                              text=poll.message(), parse_mode='Markdown')
+                              text=poll.message(), parse_mode='html')
     except Exception as e:
         logging.error('Failed to edit message text for poll {} with message id {}'\
                         .format(poll.id, poll.message_id))
@@ -188,7 +188,7 @@ def __start_poll(pokemon, start_time, location, creator):
         msg = bot.send_message(chat_id=config.output_channel_id,
                                        text=poll.message(),
                                        reply_markup=poll.reply_markup(),
-                                       parse_mode='Markdown')
+                                       parse_mode='html')
     except Exception as e:
         logging.error('Failed to create poll message for poll {}'.format(poll.id))
         logging.exception(e)
@@ -261,7 +261,7 @@ def start_time_vote(bot, update, args):
         msg = bot.send_message(chat_id=config.output_channel_id,
                                text=poll.message(),
                                reply_markup=poll.reply_markup(),
-                               parse_mode='Markdown')
+                               parse_mode='html')
     except Exception as e:
         logging.error('Failed to create poll message for poll {}'.format(poll.id))
         logging.exception(e)
@@ -623,7 +623,7 @@ def __poll_vote_callback(bot, update):
     try:
         query.edit_message_text(text=poll.message(),
                                 reply_markup=poll.reply_markup(),
-                                parse_mode='Markdown')
+                                parse_mode='html')
     except Exception as e:
         logging.error('Failed to edit message after a vote for poll {} with message id {}'\
                         .format(poll.id, poll.message_id))
@@ -652,7 +652,7 @@ def __time_poll_vote_callback(bot, update):
         try:
             query.edit_message_text(text=poll.message(),
                                     reply_markup=poll.reply_markup(),
-                                    parse_mode='Markdown')
+                                    parse_mode='html')
         except Exception as e:
             logging.error('Failed to edit message after a vote for time poll {} with message id {}'\
                             .format(poll.id, poll.message_id))
