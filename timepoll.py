@@ -95,7 +95,7 @@ class TimePoll(Poll):
         if self.closed and self.closed_reason:
             msg += '{} {}\n\n'.format(self.closed_reason_text, self.closed_reason)
         msg += 'Hier kan je stemmen voor de start tijd.\n'
-        msg += 'Vanaf vijf stemmen voor een bepaalde tijd wordt er een raid poll aangemaakt voor die tijd.\n'
+        msg += 'Minimum 5 stemmen zijn nodig om een poll te creëren voor die start tijd.\n'
         msg += '\n'
         for time, voters in self.times.items():
             msg += '<b>{}</b> [{}]: {}\n'.format(time, len(voters), ', '.join(voters.values()))
