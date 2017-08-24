@@ -16,13 +16,14 @@ def to_string(t : datetime):
 
 
 class VoteCountReachedEvent:
-    def __init__(self, poll_id):
+    def __init__(self, poll_id, start_time):
         self.poll_id = poll_id
+        self.start_time = start_time
     
 class StartTimePoll:
     id_generator = itertools.count(0)
     # min_votes = 5
-    min_votes = 1 # TODO 1 for testing
+    min_votes = 1 # TODO
     
     def __init__(self, pokemon, timer : timedelta, location, creator):
         # we have to use a separate id from the normal polls
@@ -87,8 +88,8 @@ class StartTimePoll:
         msg += '\n'
         for time, voters in self.times.items():
             msg += '*{}* [{}]: {}\n'.format(time, len(voters), ', '.join(voters.values()))
-        # msg += '\n'
-        # msg += 'Er wordt automatisch een poll aangemaakt na 5 stemmen.'
+        msg += '\n'
+        msg += 'Er wordt automatisch een poll aangemaakt na 5 stemmen.'
         
         return msg
     
@@ -108,7 +109,7 @@ class StartTimePoll:
                     changed = True
 
         if changed and len(self.times[user_time]) >= StartTimePoll.min_votes:
-            logging.debug('posting VoteCountReachedEvent({})'.format(self.id))
-            zope.event.notify(VoteCountReachedEvent(self.id))
+            logging.debug('posting VoteCountReachedEvent({}, {})'.format(self.id, user_time))
+            zope.event.notify(VoteCountReachedEvent(self.id, user_time))
 
         return changed

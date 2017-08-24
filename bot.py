@@ -178,13 +178,17 @@ def start_poll(bot, update, args):
         return
 
     creator = update.message.from_user.name
+    __start_poll(pokemon, start_time, location, creator)
+
+def __start_poll(pokemon, start_time, location, creator):
+    bot = updater.bot
     poll = Poll(pokemon, start_time, location, creator)
 
     try:
         msg = bot.send_message(chat_id=config.output_channel_id,
-                               text=poll.message(),
-                               reply_markup=poll.reply_markup(),
-                               parse_mode='Markdown')
+                                       text=poll.message(),
+                                       reply_markup=poll.reply_markup(),
+                                       parse_mode='Markdown')
     except Exception as e:
         logging.error('Failed to create poll message for poll {}'.format(poll.id))
         logging.exception(e)
@@ -200,7 +204,9 @@ def start_poll(bot, update, args):
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
     
     dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
-
+    
+    return poll
+    
     
 def parse_args_start_time_vote(bot, update, args): # returns raid boss : str, start_time : str, location : str
     if len(args) < 3:
@@ -609,7 +615,7 @@ def __poll_vote_callback(bot, update):
         logging.info('User tried to vote for an old poll that is still open')
         return
         
-    logging.debug('{} voted {} on poll {} with message id {}'\
+    logging.info('{} voted {} on poll {} with message id {}'\
         .format(query.from_user.name, query.data, poll.id, poll.message_id))
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
@@ -639,7 +645,7 @@ def __time_poll_vote_callback(bot, update):
         logging.info('User tried to vote for an old poll that is still open')
         return
         
-    logging.debug('{} voted {} on time poll {} with message id {}'\
+    logging.info('{} voted {} on time poll {} with message id {}'\
         .format(user.name, time, poll.id, poll.message_id))
 
     if results_changed:
@@ -693,7 +699,19 @@ def error_callback(bot, update, error):
         return
 
 def HandleVoteCountReachedEvent(event):
-    print('got event {}'.format(event.poll_id))
+    logging.info('got event {} {}'.format(event.poll_id, event.start_time))
+    
+    # create a new poll if one doesn't exist yet
+    for poll in polls.values():
+        if poll.time_poll_id == event.poll_id and poll.time == event.start_time:
+            logging.info('HandleVoteCountReachedEvent: a poll has already been created for {}'\
+                            .format(poll.description()))
+            return
+
+    time_poll = time_polls[event.poll_id]
+    creator = updater.bot.username
+    poll = __start_poll(time_poll.pokemon, event.start_time, time_poll.location, creator)
+    poll.time_poll_id = time_poll.id
 
 zope.event.subscribers.append(HandleVoteCountReachedEvent)
         

@@ -83,6 +83,7 @@ class Poll:
         self.delete_reason = None
         
         self.message_id = None
+        self.time_poll_id = None
 
         self.all_voters = [Voters()]
 
