@@ -402,6 +402,10 @@ def help(bot, update):
 """
 USER COMMANDS (CHAT)
 """
+level_3_bosses = ['Flareon','Jolteon','Vaporeon','Gengar','Machamp','Alakazam','Arcanine']
+level_4_bosses = ['Venusaur','Blastoise','Charizard','Rhydon','Snorlax','Tyranitar','Lapras']
+level_5_bosses = ['Moltres','Zapdos','Articuno','Lugia']
+allowed_bosses = level_3_bosses + level_4_bosses + level_5_bosses
 def __parse_args_report_raid(bot, update, args): # returns raid boss : str, timer : str, location : str
     if len(args) < 3:
         msg = 'Incorrect format. Usage: /raid <raid-boss> <raid-timer> <location>. '\
@@ -415,6 +419,10 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
         send_command_message(bot, update, msg)
         raise ValueError('Passed argument is not a Pokemon')
 
+    if not pokemon in allowed_bosses:
+        msg = '{} is not a raid boss or too low level'.format(pokemon)
+        send_command_message(bot, update, msg)
+        raise ValueError('Pokemon is not a raid boss or too low level')
     # not needed and would require code changes when raid bosses change
     # if not pokedex.is_raid_boss(args[0]):
         # raise Exception('{} is not a raid boss')
