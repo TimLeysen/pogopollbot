@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import itertools
 import re
 
@@ -15,7 +15,7 @@ def to_string(t : datetime):
 class StartTimePoll:
     id_generator = itertools.count(0)
     
-    def __init__(self, pokemon, timer, location, creator):
+    def __init__(self, pokemon, timer : timedelta, location, creator):
         # we have to use a separate id from the normal polls
         # showing it will be confusing!
         self.id = next(self.id_generator)%100
@@ -23,16 +23,11 @@ class StartTimePoll:
         self.location = location
         self.creator = creator
         
-        self.end_time = self.__calc_end_time(timer)
+        self.end_time = datetime.now() + timer
         self.start_times = self.__calc_start_times(self.end_time)
         self.votes = {}
         for time in self.start_times:
             self.votes[time] = 0
-    
-    def __calc_end_time(self, timer : str):
-        m = re.search(r'(\d+):(\d+)', timer)
-        delta = timedelta(hours=int(m.group(1)), minutes=int(m.group(2)))
-        return datetime.now() + delta
     
     def __calc_start_times(self, end_time : datetime):
         period_minutes = 15
@@ -55,7 +50,7 @@ class StartTimePoll:
                 else:
                     break
         
-        # Only keep the last 5 times
+        # only keep the last 5 times
         max_times = 5
         if len(times) > max_times:
             num_to_remove = len(times)-max_times
@@ -70,7 +65,14 @@ class StartTimePoll:
         return InlineKeyboardMarkup([row])
         
     def description(self):
-        return 'desc?'
+        # desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon, self.end_time, self.location)
+        # Don't print id, it will be confusing...
+        desc = '{} {} (ends: {})'.format(self.pokemon, self.location, to_string(self.end_time))
+        # if self.deleted:
+            # desc += ' [{}]'.format(Poll.deleted_text)
+        # elif self.closed:
+            # desc += ' [{}]'.format(Poll.closed_text)
+        return desc
         
     def message(self):
         return '???'

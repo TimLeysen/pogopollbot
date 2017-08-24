@@ -33,9 +33,10 @@ from starttimepoll import StartTimePoll
 updater = Updater(config.bot_token)
 dispatcher = updater.dispatcher
 
-# key: Message, value: Poll
+# key: Poll.id, value: Poll
 polls = {}
-
+# key: StartTimePoll.id, value: StartTimePoll
+time_polls = {}
 
 """
 Helper functions
@@ -185,13 +186,48 @@ def start_poll(bot, update, args):
     dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
 
     
+def parse_args_start_time_vote(bot, update, args): # returns raid boss : str, start_time : str, location : str
+    if len(args) < 3:
+        msg = 'Incorrect format. Usage: /starttimevote <raid-boss> <raid-timer> <location>. '\
+              'For example: /starttimevote Moltres 1:45 Park Sint-Niklaas'
+        send_command_message(bot, update, msg)
+        raise ValueError('Incorrect format: expected three arguments: raid boss, raid timer, location')
+
+    pokemon = args[0].capitalize() # TODO: Ho-Oh
+    if not pokedex.name_exists(pokemon):
+        msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
+        send_command_message(bot, update, msg)
+        raise ValueError('Passed argument is not a Pokemon')
+
+    # not needed and would require code changes when raid bosses change
+    # if not pokedex.is_raid_boss(args[0]):
+        # raise Exception('{} is not a raid boss')
+
+    timer = args[1]
+    try:
+        t = datetime.strptime(timer, '%H:%M')
+        timer = timedelta(hours=t.hour, minutes=t.minute)
+    except:
+        msg = 'Incorrect timer format. Expected HH:MM. For example: 13:00.'
+        send_command_message(bot, update, msg)
+        raise ValueError('Incorrect time format. Expected HH:MM.')
+
+    if timer.total_seconds() > 7200:
+        msg = 'Raid timer should be less than 2:00.'
+        send_command_message(bot, update, msg)
+        raise ValueError(msg)
+        
+    location = ' '.join(args[2:])
+
+    return pokemon, timer, location
+    
+    
 def start_time_vote(bot, update, args):
     if not authorized(bot, update):
         return
 
-    # FIXME error msgs! define custom exceptions Class MyException(Exception): pass
     try:
-        pokemon, timer, location = parse_args_start_poll(bot, update, args)
+        pokemon, timer, location = parse_args_start_time_vote(bot, update, args)
     except ValueError as e:
         logging.info(e)
         return
@@ -209,8 +245,8 @@ def start_time_vote(bot, update, args):
         logging.exception(e)
         return
         
-    # poll.message_id = msg.message_id
-    # polls[poll.id] = poll
+    poll.message_id = msg.message_id
+    time_polls[poll.id] = poll
     
     msg = '{} created a start time vote: {}.'.format(creator, poll.description())
     send_message(bot, msg)
