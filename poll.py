@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 import itertools
+
 
 class Poll(metaclass=ABCMeta):
     __metaclass__ = ABCMeta
@@ -11,10 +13,11 @@ class Poll(metaclass=ABCMeta):
     deleted_text = 'VERWIJDERD'
     created_by_text = 'Poll aangemaakt door'
     
-    def __init__(self, creator):
+    def __init__(self, end_time : datetime, creator):
         self.global_id = next(self.id_generator)
         self.id = (self.global_id-1)%100 +1
         
+        self.end_time = end_time
         self.creator = creator
         self.closed = False
         self.closed_reason = None

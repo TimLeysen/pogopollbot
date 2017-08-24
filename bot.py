@@ -26,18 +26,17 @@ import config
 import database
 import eastereggs
 import pokedex
+from poll import Poll
 from raidpoll import RaidPoll
-from starttimepoll import StartTimePoll, VoteCountReachedEvent
+from timepoll import TimePoll, VoteCountReachedEvent
 
 
 
 updater = Updater(config.bot_token)
 dispatcher = updater.dispatcher
 
-# key: RaidPoll.id, value: RaidPoll
+# key: Poll.id, value: Poll
 polls = {}
-# key: StartTimePoll.id, value: StartTimePoll
-time_polls = {}
 
 """
 Helper functions
@@ -94,40 +93,20 @@ def admin(bot, update, print_warning=True):
 
 def poll_exists(id : int):
     return id in polls
-    
-def time_poll_exists(id : int):
-    return id in time_polls    
 
 def is_poll(msg_id):
     return msg_id in [poll.message_id for poll in polls.values()]
-
-def is_time_poll(msg_id):
-    return msg_id in [poll.message_id for poll in time_polls.values()]
     
 def get_poll(msg_id):
     for poll in polls.values():
         if poll.message_id == msg_id:
             return poll
-    raise ValueError('RaidPoll with message_id {} does not exist!'.format(msg_id))
-    
-def get_time_poll(msg_id):
-    for poll in time_polls.values():
-        if poll.message_id == msg_id:
-            return poll
-    raise ValueError('Time poll with message_id {} does not exist!'.format(msg_id))
+    raise ValueError('Poll with message_id {} does not exist!'.format(msg_id))
 
 def parse_poll_id_arg(bot, update, arg : str):
     id = arg.lstrip('#')
     if not id.isdigit() or not poll_exists(int(id)):
         msg = 'Unknown poll id. Type /list to see all poll ids'
-        send_command_message(bot, update, msg)
-        raise ValueError('Incorrect format: unknown poll id')
-    return int(id)
-    
-def parse_time_poll_id_arg(bot, update, arg : str):
-    id = arg.lstrip('#')
-    if not id.isdigit() or not time_poll_exists(int(id)):
-        msg = 'Unknown time poll id.'
         send_command_message(bot, update, msg)
         raise ValueError('Incorrect format: unknown poll id')
     return int(id)
@@ -164,7 +143,10 @@ def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_t
 
     start_time = args[1]
     try:
-        datetime.strptime(start_time, '%H:%M').time()
+        # FIXME - midnight!
+        d = datetime.now().date()
+        t = datetime.strptime(start_time, '%H:%M').time()
+        start_time = datetime.combine(d, t)
     except:
         msg = 'Incorrect time format. Expected HH:MM. For example: 13:00'
         send_command_message(bot, update, msg)
@@ -194,9 +176,9 @@ def __start_poll(pokemon, start_time, location, creator):
 
     try:
         msg = bot.send_message(chat_id=config.output_channel_id,
-                                       text=poll.message(),
-                                       reply_markup=poll.reply_markup(),
-                                       parse_mode='html')
+                               text=poll.message(),
+                               reply_markup=poll.reply_markup(),
+                               parse_mode='html')
     except Exception as e:
         logging.error('Failed to create poll message for poll {}'.format(poll.id))
         logging.exception(e)
@@ -218,27 +200,14 @@ def __start_poll(pokemon, start_time, location, creator):
     
 def close_poll_on_timer(bot, poll_id):
     poll = polls[poll_id]
-    delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
-    if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
-        logging.info('RaidPoll is not closed automatically because start time is earlier than now: {}')\
-            .format(poll.description())
-        return
-
-    time.sleep(delta.seconds)
-    __close_poll(bot, polls, poll_id, 'start tijd verstreken')
-    
-
-def close_time_poll_on_timer(bot, poll_id): # TODO duplicate code
-    poll = time_polls[poll_id]
     delta = poll.end_time - datetime.now()
     if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
-        logging.info('RaidPoll is not closed automatically because start time is earlier than now: {}')\
+        logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
             .format(poll.description())
         return
 
     time.sleep(delta.seconds)
-    __close_poll(bot, time_polls, poll_id, 'raid afgelopen')
-    
+    __close_poll(bot, polls, poll_id, 'tijd verstreken')
 
 def parse_args_close_poll(bot, update, args):
     if len(args) < 1:
@@ -268,12 +237,12 @@ def close_poll(bot, update, args):
 # TODO: id exists is checked in close_poll (user command) but also here...
 def __close_poll(bot, polls, poll_id, reason=None, update=None):
     if poll_id not in polls:
-        logging.info('RaidPoll does not exist anymore')
+        logging.info('Poll does not exist anymore')
         return
 
     poll = polls[poll_id]
     if poll.closed:
-        msg = 'RaidPoll {} is already closed'.format(poll.id)
+        msg = 'Poll {} is already closed'.format(poll.id)
         if update:
             send_command_message(bot, update, msg)
         else:
@@ -311,13 +280,13 @@ def delete_all_polls(bot, update):
 
 def delete_poll_on_timer(bot, poll_id):
     poll = polls[poll_id]
-    delta = datetime.strptime(poll.time, '%H:%M') - datetime.now()
+    delta = poll.end_time - datetime.now()
     if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
-        logging.info('RaidPoll is not deleted automatically because start time is earlier than now: {}')\
+        logging.info('Poll is not deleted automatically because start time is earlier than now: {}')\
             .format(poll.description())
         return
 
-    # delete 1 hour after start time
+    # delete 1 hour after end time
     time.sleep(delta.seconds + 3600)
     __delete_poll(bot, poll_id)
 
@@ -359,7 +328,7 @@ def delete_poll(bot, update, args):
 
 def __delete_poll(bot, poll_id, reason=None, update=None):
     if not poll_exists(poll_id):
-        logging.info('RaidPoll {} has already been deleted'.info(poll_id))
+        logging.info('Poll {} has already been deleted'.info(poll_id))
         return
 
     poll = polls[poll_id]
@@ -448,7 +417,7 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
 
     timer = args[1]
     try:
-        t = datetime.strptime(timer, '%H:%M')
+        t = datetime.strptime(timer, '%H:%M').time()
         timer = timedelta(hours=t.hour, minutes=t.minute)
     except:
         msg = 'Incorrect timer format. Expected HH:MM. For example: 13:00.'
@@ -460,9 +429,10 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
         send_command_message(bot, update, msg)
         raise ValueError(msg)
         
+    end_time = datetime.now() + timer
     location = ' '.join(args[2:])
 
-    return pokemon, timer, location
+    return pokemon, end_time, location
     
     
 def report_raid(bot, update, args):
@@ -470,13 +440,13 @@ def report_raid(bot, update, args):
         return
 
     try:
-        pokemon, timer, location = __parse_args_report_raid(bot, update, args)
+        pokemon, end_time, location = __parse_args_report_raid(bot, update, args)
     except ValueError as e:
         logging.info(e)
         return
 
     creator = update.message.from_user.name
-    poll = StartTimePoll(pokemon, timer, location, creator)
+    poll = TimePoll(pokemon, end_time, location, creator)
 
     try:
         msg = bot.send_message(chat_id=config.output_channel_id,
@@ -489,13 +459,13 @@ def report_raid(bot, update, args):
         return
         
     poll.message_id = msg.message_id
-    time_polls[poll.id] = poll
+    polls[poll.id] = poll
     
     msg = '{} reported a raid: {}\n'.format(creator, poll.description())
     msg += 'You can vote for a start time in {}'.format(config.output_channel_id)
     send_message(bot, msg)
     
-    dispatcher.run_async(close_time_poll_on_timer, *(bot, poll.id))
+    dispatcher.run_async(close_poll_on_timer, *(bot, poll.id))
     
 
 # def __parse_args_delete_raid(bot, update, args):
@@ -504,7 +474,7 @@ def report_raid(bot, update, args):
         # send_command_message(bot, update, msg)
         # raise ValueError('Incorrect format: expected at least 1 argument')
 
-    # id = parse_time_poll_id_arg(bot, update, args[0])
+    # id = parse_poll_id_arg(bot, update, args[0])
     # reason = ' '.join(args[1:]) if len(args) > 1 else None
 
     # return id, reason
@@ -600,7 +570,8 @@ def save_state(bot, update):
 
     try:
         with open(data_file, 'wb') as f:
-            data = {'id_generator' : RaidPoll.id_generator, 'polls' : polls}
+            data = {'id_generator' : Poll.id_generator,                    
+                    'polls' : polls}
             pickle.dump(data, f)
         send_command_message(bot, update, 'Saved state to file')
     except Exception as e:
@@ -619,7 +590,7 @@ def __load_state():
     try:
         with open(data_file, 'rb') as f:
             data = pickle.load(f)
-            RaidPoll.id_generator = data['id_generator']
+            Poll.id_generator = data['id_generator']
             polls = data['polls']
         logging.info('Loaded state from file')
         return True
@@ -658,14 +629,15 @@ def vote_callback(bot, update):
     query = update.callback_query
     msg_id = query.message.message_id
     
-    if is_poll(msg_id):
-        return __poll_vote_callback(bot, update)
+    poll = get_poll(msg_id)
+    if type(poll) is RaidPoll:
+        return __raid_poll_vote_callback(bot, update)
     
-    if is_time_poll(msg_id):
+    if type(poll) is TimePoll:
         return __time_poll_vote_callback(bot, update)
 
         
-def __poll_vote_callback(bot, update):
+def __raid_poll_vote_callback(bot, update):
     query = update.callback_query
     msg_id = query.message.message_id
     poll = get_poll(msg_id)
@@ -698,7 +670,7 @@ def __poll_vote_callback(bot, update):
 def __time_poll_vote_callback(bot, update):
     query = update.callback_query
     msg_id = query.message.message_id
-    poll = get_time_poll(msg_id)
+    poll = get_poll(msg_id)
 
     user = query.from_user
     time = query.data
@@ -765,15 +737,19 @@ def HandleVoteCountReachedEvent(event):
     logging.info('got event {} {}'.format(event.poll_id, event.start_time))
     
     # create a new poll if one doesn't exist yet
-    for poll in polls.values():
-        if poll.time_poll_id == event.poll_id and poll.time == event.start_time:
-            logging.info('HandleVoteCountReachedEvent: a poll has already been created for {}'\
+    for poll in polls:
+        if type(poll) is RaidPoll:
+            if poll.time_poll_id == event.poll_id and poll.end_time == event.start_time:
+                logging.info('HandleVoteCountReachedEvent: a poll has already been created for {}'\
                             .format(poll.description()))
-            return
+                return
 
-    time_poll = time_polls[event.poll_id]
+    time_poll = polls[event.poll_id]
+    d = datetime.now().date()
+    t = datetime.strptime(event.start_time, '%H:%M').time()
+    time = datetime.combine(d, t)
     creator = updater.bot.username
-    poll = __start_poll(time_poll.pokemon, event.start_time, time_poll.location, creator)
+    poll = __start_poll(time_poll.pokemon, time, time_poll.location, creator)
     poll.time_poll_id = time_poll.id
 
 zope.event.subscribers.append(HandleVoteCountReachedEvent)

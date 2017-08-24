@@ -21,15 +21,14 @@ class VoteCountReachedEvent:
         self.poll_id = poll_id
         self.start_time = start_time
     
-class StartTimePoll(Poll):
+class TimePoll(Poll):
     # min_votes = 5
     min_votes = 1 # TODO
     
-    def __init__(self, pokemon, timer : timedelta, location, creator):
-        super().__init__(creator)
+    def __init__(self, pokemon, end_time : datetime, location, creator):
+        super().__init__(end_time, creator)
         
         self.pokemon = pokemon
-        self.end_time = datetime.now() + timer
         self.location = location
               
         self.times = {} # key: start time, value: number of votes
@@ -71,23 +70,38 @@ class StartTimePoll(Poll):
         return InlineKeyboardMarkup([row])
         
     def description(self):
-        desc = '#{} {} {} (ends: {})'.format(self.id_string(), self.pokemon, self.location, to_string(self.end_time))
+        desc = '#{} {} {} (ends: {})'.format(self.id_string(), self.pokemon,
+            self.location, to_string(self.end_time))
+        if self.deleted:
+            desc += ' [{}]'.format(self.deleted_text)
+        elif self.closed:
+            desc += ' [{}]'.format(self.closed_text)        
         return desc
 
     def message(self):
         msg = ''
         msg += '<b>{}</b> (tot {})'.format(self.pokemon, to_string(self.end_time))
+        if self.deleted:
+            msg += ' <b>[{}]</b>'.format(self.deleted_text)        
         if self.closed:
-            msg += ' <b>[{}]</b>'.format(StartTimePoll.closed_text)
+            msg += ' <b>[{}]</b>'.format(self.closed_text)
         msg += '\n'
-        msg += '{}\n'.format(self.location)
-        msg += '\n'
+        msg += '{}'.format(self.location)
+        
+        if self.deleted:
+            msg += '\n#{}'.format(self.id_string())
+            return msg        
+        
+        msg += '\n\n'
+        if self.closed and self.closed_reason:
+            msg += '{} {}\n\n'.format(self.closed_reason_text, self.closed_reason)
         msg += 'Hier kan je stemmen voor de start tijd.\n'
         msg += 'Vanaf vijf stemmen voor een bepaalde tijd wordt er een raid poll aangemaakt voor die tijd.\n'
+        msg += '\n'
         for time, voters in self.times.items():
             msg += '<b>{}</b> [{}]: {}\n'.format(time, len(voters), ', '.join(voters.values()))
         msg += '\n'
-        msg += '{} {}\n'.format(StartTimePoll.created_by_text, self.creator)
+        msg += '{} {}\n'.format(self.created_by_text, self.creator)
         msg += '#{}'.format(self.id_string())
         return msg
     
@@ -106,7 +120,7 @@ class StartTimePoll(Poll):
                     del self.times[time][user_id]
                     changed = True
 
-        if changed and len(self.times[user_time]) >= StartTimePoll.min_votes:
+        if changed and len(self.times[user_time]) >= TimePoll.min_votes:
             logging.debug('posting VoteCountReachedEvent({}, {})'.format(self.id, user_time))
             zope.event.notify(VoteCountReachedEvent(self.id, user_time))
 

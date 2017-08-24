@@ -1,3 +1,4 @@
+from datetime import datetime
 import itertools
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -5,6 +6,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import pokedex
 from poll import Poll
 
+def from_string(t : str):
+    return datetime.strptime(t, '%H:%M')
+
+def to_string(t : datetime):
+    return datetime.strftime(t, '%H:%M')
 
 class Voter:
     def __init__(self, name, level):
@@ -63,13 +69,12 @@ class RaidPoll(Poll):
             menu.append([InlineKeyboardButton(RaidPoll.options[i], callback_data=str(i))])
         return InlineKeyboardMarkup(menu)
 
-    def __init__(self, pokemon, time, location, creator):
-        super().__init__(creator)
+    def __init__(self, pokemon, time : datetime, location, creator):
+        super().__init__(time, creator)
         
         self.pokemon = pokemon
         self.img_url = 'http://floatzel.net/pokemon/black-white/sprites/images/{0}.png'\
                         .format(pokedex.get_id(pokemon))
-        self.time = time
         self.location = location
 
         self.time_poll_id = None
@@ -77,22 +82,23 @@ class RaidPoll(Poll):
         self.all_voters = [Voters()]
 
     def description(self):
-        desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon, self.time, self.location)
+        desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon,
+            to_string(self.end_time), self.location)
         if self.deleted:
-            desc += ' [{}]'.format(RaidPoll.deleted_text)
+            desc += ' [{}]'.format(self.deleted_text)
         elif self.closed:
-            desc += ' [{}]'.format(RaidPoll.closed_text)
+            desc += ' [{}]'.format(self.closed_text)
         return desc
 
     def message(self):
         # disabled: image is too big on phones and we can't change the preview size
         # msg = '<a href=\"{}\">&#8205;</a>\n'.format(self.img_url)
         msg = ''
-        msg += '<b>{} {}</b>'.format(self.pokemon, self.time)
+        msg += '<b>{} {}</b>'.format(self.pokemon, self.end_time)
         if self.deleted:
-            msg += ' <b>[{}]</b>'.format(RaidPoll.deleted_text)
+            msg += ' <b>[{}]</b>'.format(self.deleted_text)
         elif self.closed:
-            msg += ' <b>[{}]</b>'.format(RaidPoll.closed_text)
+            msg += ' <b>[{}]</b>'.format(self.closed_text)
         msg += '\n'
         msg += '{}'.format(self.location)
         
@@ -106,8 +112,8 @@ class RaidPoll(Poll):
             weaknesses.append('<b>{}</b>'.format(weakness) if weakness[-2:]=='x2' else weakness)
         msg += 'Weaknesses: {}\n\n'.format(', '.join(weaknesses))
         
-        if self.closed:
-            msg += '{} {}\n\n'.format(RaidPoll.closed_reason_text, self.closed_reason)
+        if self.closed and self.closed_reason:
+            msg += '{} {}\n\n'.format(self.closed_reason_text, self.closed_reason)
         
         for i in range(0, len(self.all_voters)):
             voters = self.all_voters[i]
