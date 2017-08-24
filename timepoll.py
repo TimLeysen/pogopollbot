@@ -32,12 +32,12 @@ class TimePoll(Poll):
         self.location = location
               
         self.times = {} # key: start time, value: number of votes
-        for time in self.__calc_start_times(self.end_time):
+        for time in self.calc_start_times(self.end_time):
             self.times[time] = {} # keys: user id, values: user names
     
-    def __calc_start_times(self, end_time : datetime):
+    def calc_start_times(self, end_time : datetime):
         period_minutes = 15
-        min_start_delta = timedelta(minutes=25)
+        min_start_delta = timedelta(minutes=10)
         min_end_delta = timedelta(minutes=10)
         period_delta = timedelta(minutes=period_minutes)
         times = [] # as strings
