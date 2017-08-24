@@ -371,8 +371,12 @@ def help(bot, update):
           'Shows this message\n\n'\
           \
           '/start <pokemon> <time> <location>\n'\
-          'Starts a new poll.\n'\
+          'Starts a new raid poll.\n'\
           'Example: /start Snorlax 13:30 Park Sint-Niklaas\n\n'\
+          \
+          '/raid <pokemon> <timer> <location>\n'\
+          'Starts a new time poll for raid where users can vote for the starting time.\n'\
+          'Example: /raid Snorlax 1:45 Park Sint-Niklaas\n\n'\
           \
           '/close <id> (<reason>)\n'\
           'Closes the poll with id <id>. You can add a reason (optional).\n'\
