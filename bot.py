@@ -20,13 +20,14 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError)
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
+import zope.event
 
 import config
 import database
 import eastereggs
 import pokedex
 from poll import Poll
-from starttimepoll import StartTimePoll
+from starttimepoll import StartTimePoll, VoteCountReachedEvent
 
 
 
@@ -585,21 +586,17 @@ def unknown_command(bot, update):
 OTHER STUFF
 """        
 def vote_callback(bot, update):
-    print('vote_callback')
     query = update.callback_query
     msg_id = query.message.message_id
     
     if is_poll(msg_id):
-        print('poll exists')
         return __poll_vote_callback(bot, update)
     
     if is_time_poll(msg_id):
-        print('time poll exists')
         return __time_poll_vote_callback(bot, update)
 
         
 def __poll_vote_callback(bot, update):
-    print('__poll_vote_callback')
     query = update.callback_query
     msg_id = query.message.message_id
     poll = get_poll(msg_id)
@@ -612,7 +609,7 @@ def __poll_vote_callback(bot, update):
         logging.info('User tried to vote for an old poll that is still open')
         return
         
-    logging.info('{} voted {} on poll {} with message id {}'\
+    logging.debug('{} voted {} on poll {} with message id {}'\
         .format(query.from_user.name, query.data, poll.id, poll.message_id))
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
@@ -630,20 +627,20 @@ def __poll_vote_callback(bot, update):
 
 
 def __time_poll_vote_callback(bot, update):
-    print('__time_poll_vote_callback')
     query = update.callback_query
     msg_id = query.message.message_id
     poll = get_time_poll(msg_id)
 
     user = query.from_user
+    time = query.data
     try:
-        results_changed = poll.add_vote(user.id, user.name, query.data)
+        results_changed = poll.add_vote(user.id, user.name, time)
     except KeyError as e:
         logging.info('User tried to vote for an old poll that is still open')
         return
         
-    logging.info('{} voted {} on time poll {} with message id {}'\
-        .format(user.name, query.data, poll.id, poll.message_id))
+    logging.debug('{} voted {} on time poll {} with message id {}'\
+        .format(user.name, time, poll.id, poll.message_id))
 
     if results_changed:
         try:
@@ -695,6 +692,11 @@ def error_callback(bot, update, error):
         # handle all other telegram related errors
         return
 
+def HandleVoteCountReachedEvent(event):
+    print('got event {}'.format(event.poll_id))
+
+zope.event.subscribers.append(HandleVoteCountReachedEvent)
+        
 logFormatter = logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.INFO)

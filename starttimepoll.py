@@ -4,6 +4,7 @@ import logging
 import re
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+import zope.event
 
 import pokedex
 
@@ -13,9 +14,15 @@ def from_string(t : str):
 def to_string(t : datetime):
     return datetime.strftime(t, '%H:%M')
 
+
+class VoteCountReachedEvent:
+    def __init__(self, poll_id):
+        self.poll_id = poll_id
     
 class StartTimePoll:
     id_generator = itertools.count(0)
+    # min_votes = 5
+    min_votes = 1 # TODO 1 for testing
     
     def __init__(self, pokemon, timer : timedelta, location, creator):
         # we have to use a separate id from the normal polls
@@ -57,7 +64,7 @@ class StartTimePoll:
             num_to_remove = len(times)-max_times
             return times[num_to_remove:]
         return times
-    
+
     def reply_markup(self):
         row = []
         for time in self.times:
@@ -84,22 +91,24 @@ class StartTimePoll:
         # msg += 'Er wordt automatisch een poll aangemaakt na 5 stemmen.'
         
         return msg
-        
-    def add_vote(self, user_id, user_name, time : str):
+    
+    def add_vote(self, user_id, user_name, user_time : str):
         changed = False
         
-        # remove previous choice
-        for start_time in self.times:
-            if user_id in self.times[start_time]:
-                logging.info('Removing time {} for user {} ({})'\
-                    .format(start_time, user_name, user_id))
-                del self.times[start_time][user_id]
-                changed = True
+        for time in self.times:
+            if time == user_time:
+                if user_id not in self.times[time]:
+                    self.times[time][user_id] = user_name
+                    changed = True
+            else:
+                if user_id in self.times[time]:                
+                    logging.info('Removing time {} for user {} ({})'\
+                        .format(time, user_name, user_id))
+                    del self.times[time][user_id]
+                    changed = True
 
-        # set new choice
-        logging.info('Setting time {} for user {} ({})'.format(time, user_name, user_id))
-        if user_id not in self.times[time]:
-            self.times[time][user_id] = user_name
-            changed = True
+        if changed and len(self.times[user_time]) >= StartTimePoll.min_votes:
+            logging.debug('posting VoteCountReachedEvent({})'.format(self.id))
+            zope.event.notify(VoteCountReachedEvent(self.id))
 
         return changed
