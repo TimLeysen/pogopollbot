@@ -47,14 +47,14 @@ Helper functions
 # Messages: created/closed/deleted a poll
 def send_message(bot, msg):
     logging.info(msg)
-    bot.send_message(chat_id=config.input_chat_id, text=msg)
-    bot.send_message(chat_id=config.output_chat_id, text=msg)
+    bot.send_message(chat_id=config.input_chat_id, text=msg, disable_web_page_preview=True)
+    bot.send_message(chat_id=config.output_chat_id, text=msg, disable_web_page_preview=True)
 
-# Send a message to the channel where users send commands to the bots
+# Send a message to the channel where a user used a command
 # This is mainly for giving information when using a command wrong.
 def send_command_message(bot, update, msg):
     logging.info(msg)
-    bot.send_message(chat_id=update.message.chat_id, text=msg)
+    bot.send_message(chat_id=update.message.chat_id, text=msg, disable_web_page_preview=True)
 
 # Test if a user is allowed to send commands to the bot
 def authorized(bot, update):
@@ -120,6 +120,14 @@ def parse_poll_id_arg(bot, update, arg : str):
     id = arg.lstrip('#')
     if not id.isdigit() or not poll_exists(int(id)):
         msg = 'Unknown poll id. Type /list to see all poll ids'
+        send_command_message(bot, update, msg)
+        raise ValueError('Incorrect format: unknown poll id')
+    return int(id)
+    
+def parse_time_poll_id_arg(bot, update, arg : str):
+    id = arg.lstrip('#')
+    if not id.isdigit() or not time_poll_exists(int(id)):
+        msg = 'Unknown time poll id.'
         send_command_message(bot, update, msg)
         raise ValueError('Incorrect format: unknown poll id')
     return int(id)
@@ -206,73 +214,7 @@ def __start_poll(pokemon, start_time, location, creator):
     dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
     
     return poll
-    
-    
-def parse_args_start_time_vote(bot, update, args): # returns raid boss : str, start_time : str, location : str
-    if len(args) < 3:
-        msg = 'Incorrect format. Usage: /starttimevote <raid-boss> <raid-timer> <location>. '\
-              'For example: /starttimevote Moltres 1:45 Park Sint-Niklaas'
-        send_command_message(bot, update, msg)
-        raise ValueError('Incorrect format: expected three arguments: raid boss, raid timer, location')
 
-    pokemon = args[0].capitalize() # TODO: Ho-Oh
-    if not pokedex.name_exists(pokemon):
-        msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
-        send_command_message(bot, update, msg)
-        raise ValueError('Passed argument is not a Pokemon')
-
-    # not needed and would require code changes when raid bosses change
-    # if not pokedex.is_raid_boss(args[0]):
-        # raise Exception('{} is not a raid boss')
-
-    timer = args[1]
-    try:
-        t = datetime.strptime(timer, '%H:%M')
-        timer = timedelta(hours=t.hour, minutes=t.minute)
-    except:
-        msg = 'Incorrect timer format. Expected HH:MM. For example: 13:00.'
-        send_command_message(bot, update, msg)
-        raise ValueError('Incorrect time format. Expected HH:MM.')
-
-    if timer.total_seconds() > 7200:
-        msg = 'Raid timer should be less than 2:00.'
-        send_command_message(bot, update, msg)
-        raise ValueError(msg)
-        
-    location = ' '.join(args[2:])
-
-    return pokemon, timer, location
-    
-    
-def start_time_vote(bot, update, args):
-    if not authorized(bot, update):
-        return
-
-    try:
-        pokemon, timer, location = parse_args_start_time_vote(bot, update, args)
-    except ValueError as e:
-        logging.info(e)
-        return
-
-    creator = update.message.from_user.name
-    poll = StartTimePoll(pokemon, timer, location, creator)
-
-    try:
-        msg = bot.send_message(chat_id=config.output_channel_id,
-                               text=poll.message(),
-                               reply_markup=poll.reply_markup(),
-                               parse_mode='html')
-    except Exception as e:
-        logging.error('Failed to create poll message for poll {}'.format(poll.id))
-        logging.exception(e)
-        return
-        
-    poll.message_id = msg.message_id
-    time_polls[poll.id] = poll
-    
-    msg = '{} created a start time vote: {}.'.format(creator, poll.description())
-    send_message(bot, msg)
-    
     
 def close_poll_on_timer(bot, poll_id):
     poll = polls[poll_id]
@@ -283,8 +225,20 @@ def close_poll_on_timer(bot, poll_id):
         return
 
     time.sleep(delta.seconds)
-    __close_poll(bot, poll_id, 'start tijd verstreken')
+    __close_poll(bot, polls, poll_id, 'start tijd verstreken')
+    
 
+def close_time_poll_on_timer(bot, poll_id): # TODO duplicate code
+    poll = time_polls[poll_id]
+    delta = poll.end_time - datetime.now()
+    if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
+        logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
+            .format(poll.description())
+        return
+
+    time.sleep(delta.seconds)
+    __close_poll(bot, time_polls, poll_id, 'raid afgelopen')
+    
 
 def parse_args_close_poll(bot, update, args):
     if len(args) < 1:
@@ -307,13 +261,13 @@ def close_poll(bot, update, args):
         logging.info(e)
         return
 
-    __close_poll(bot, poll_id, reason, update)
+    __close_poll(bot, polls, poll_id, reason, update)
     
     return
 
 # TODO: id exists is checked in close_poll (user command) but also here...
-def __close_poll(bot, poll_id, reason=None, update=None):
-    if not poll_exists(poll_id):
+def __close_poll(bot, polls, poll_id, reason=None, update=None):
+    if poll_id not in polls:
         logging.info('Poll does not exist anymore')
         return
 
@@ -472,6 +426,114 @@ def help(bot, update):
           'Deletes all polls. Only usable by admins.'
     send_command_message(bot, update, msg)
 
+"""
+USER COMMANDS (CHAT)
+"""
+def __parse_args_report_raid(bot, update, args): # returns raid boss : str, timer : str, location : str
+    if len(args) < 3:
+        msg = 'Incorrect format. Usage: /raid <raid-boss> <raid-timer> <location>. '\
+              'For example: /raid Moltres 1:45 Park Sint-Niklaas'
+        send_command_message(bot, update, msg)
+        raise ValueError('Incorrect format: expected three arguments: raid boss, raid timer, location')
+
+    pokemon = args[0].capitalize() # TODO: Ho-Oh
+    if not pokedex.name_exists(pokemon):
+        msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
+        send_command_message(bot, update, msg)
+        raise ValueError('Passed argument is not a Pokemon')
+
+    # not needed and would require code changes when raid bosses change
+    # if not pokedex.is_raid_boss(args[0]):
+        # raise Exception('{} is not a raid boss')
+
+    timer = args[1]
+    try:
+        t = datetime.strptime(timer, '%H:%M')
+        timer = timedelta(hours=t.hour, minutes=t.minute)
+    except:
+        msg = 'Incorrect timer format. Expected HH:MM. For example: 13:00.'
+        send_command_message(bot, update, msg)
+        raise ValueError('Incorrect time format. Expected HH:MM.')
+
+    if timer.total_seconds() > 7200:
+        msg = 'Raid timer should be less than 2:00.'
+        send_command_message(bot, update, msg)
+        raise ValueError(msg)
+        
+    location = ' '.join(args[2:])
+
+    return pokemon, timer, location
+    
+    
+def report_raid(bot, update, args):
+    if update.message.chat_id != config.output_chat_id:
+        return
+
+    try:
+        pokemon, timer, location = __parse_args_report_raid(bot, update, args)
+    except ValueError as e:
+        logging.info(e)
+        return
+
+    creator = update.message.from_user.name
+    poll = StartTimePoll(pokemon, timer, location, creator)
+
+    try:
+        msg = bot.send_message(chat_id=config.output_channel_id,
+                               text=poll.message(),
+                               reply_markup=poll.reply_markup(),
+                               parse_mode='html')
+    except Exception as e:
+        logging.error('Failed to create poll message for start time poll {}'.format(poll.id))
+        logging.exception(e)
+        return
+        
+    poll.message_id = msg.message_id
+    time_polls[poll.id] = poll
+    
+    msg = '{} reported a raid: {}\n'.format(creator, poll.description())
+    msg += 'You can vote for a start time in {}'.format(config.output_channel_id)
+    send_message(bot, msg)
+    
+    dispatcher.run_async(close_time_poll_on_timer, *(bot, poll.id))
+    
+
+# def __parse_args_delete_raid(bot, update, args):
+    # if len(args) < 1:
+        # msg = 'Incorrect format. Usage: /deleteraid <id> (<reason>). For example: /delete 15, /delete 15 Duplicate poll'
+        # send_command_message(bot, update, msg)
+        # raise ValueError('Incorrect format: expected at least 1 argument')
+
+    # id = parse_time_poll_id_arg(bot, update, args[0])
+    # reason = ' '.join(args[1:]) if len(args) > 1 else None
+
+    # return id, reason
+    
+    
+# def delete_raid(bot, update, args):
+    # normal_user = update.message.chat_id == config.output_chat_id
+    # power_user = update.message.chat_id == config.input_chat_id    
+    # if not (normal_user or power_user):
+        # return
+
+    # if update.message.chat_id == config.output_chat_id:
+        # try:
+            # poll_id, reason = __parse_args_delete_raid(bot, update, args)
+        # except ValueError as e:
+            # logging.info(e)
+            # return
+        
+        # Check if the user that tries to delete a time poll is the creator of that poll or an admin
+        # poll = time_polls[poll_id]
+        # user_name = update.message.from_user.name
+        # own_poll = user_name == poll.creator
+        # if not own_poll and not admin(bot, update, print_warning=False):
+            # msg = '{}, you cannot delete a raid that you did not create yourself'.format(user_name)
+            # send_command_message(bot, update, msg)
+            # return
+
+        # TODO
+        # __delete_time_poll(bot, poll_id, reason, update)   
     
     
 """
@@ -516,7 +578,8 @@ def chat_id(bot, update):
     send_command_message(bot, update, msg)
 
 def test(bot, update):
-    if not admin(bot, update):
+    # if not admin(bot, update):
+    if not config.test_version:
         return
 
     pokemon = random.choice(list(pokedex.raid_bosses.keys()))
@@ -525,10 +588,12 @@ def test(bot, update):
     # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
     # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
     
-    h = random.randrange(1, 2)
-    m = random.randrange(0, 60)
+    # h = random.randrange(1, 2)
+    # m = random.randrange(0, 60)
+    h = 0
+    m = 1
     timer = '{}:{}'.format(h, str(m).zfill(2))
-    start_time_vote(bot, update, [pokemon, timer, 'TEST'])
+    report_raid(bot, update, [pokemon, timer, 'TEST'])
 
 data_file = 'data.pickle'
 def save_state(bot, update):
@@ -727,16 +792,19 @@ consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
 rootLogger.addHandler(consoleHandler)
 
-# USER COMMANDS
+# BOT USER COMMANDS
 dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
-dispatcher.add_handler(CommandHandler('starttimevote', start_time_vote, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
 dispatcher.add_handler(CommandHandler('help', help))
 
-# USER COMMANDS (PM)
+# GENERAL USER COMMANDS
+dispatcher.add_handler(CommandHandler('raid', report_raid, pass_args=True))
+# dispatcher.add_handler(CommandHandler('deleteraid', delete_raid, pass_args=True))
+
+# GENERAL USER COMMANDS (PM)
 dispatcher.add_handler(CommandHandler('setlevel', set_level, pass_args=True))
 
 # ADMIN COMMANDS

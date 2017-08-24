@@ -9,7 +9,8 @@ if test_version:
     # channel where polls are broadcasted
     output_channel_id = '@PoGoWaaslandRaidsTest'
     # general chat where create, close and delete commands are also posted
-    output_chat_id = '@PoGoWaaslandTest'
+    # output_chat_id = '@PoGoWaaslandTest'
+    output_chat_id = -1001127228363
     # chat from where users can send commands to the bot
     # you can use /chatid to the bot to get the chat id
     input_chat_id = -212819985 # PoGoWaaslandBotTest
