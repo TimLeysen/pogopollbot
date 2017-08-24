@@ -93,12 +93,27 @@ def admin(bot, update, print_warning=True):
 
 def poll_exists(id : int):
     return id in polls
+    
+def time_poll_exists(id : int):
+    return id in time_polls    
 
+def is_poll(msg_id):
+    return msg_id in [poll.message_id for poll in polls.values()]
+
+def is_time_poll(msg_id):
+    return msg_id in [poll.message_id for poll in time_polls.values()]
+    
 def get_poll(msg_id):
     for poll in polls.values():
         if poll.message_id == msg_id:
             return poll
     raise ValueError('Poll with message_id {} does not exist!'.format(msg_id))
+    
+def get_time_poll(msg_id):
+    for poll in time_polls.values():
+        if poll.message_id == msg_id:
+            return poll
+    raise ValueError('Time poll with message_id {} does not exist!'.format(msg_id))
 
 def parse_poll_id_arg(bot, update, arg : str):
     id = arg.lstrip('#')
@@ -498,10 +513,15 @@ def test(bot, update):
         return
 
     pokemon = random.choice(list(pokedex.raid_bosses.keys()))
-    start_time = datetime.strftime(datetime.now() + timedelta(minutes=10), '%H:%M')
-    start_poll(bot, update, [pokemon, start_time, 'TEST'])
+    # start_time = datetime.strftime(datetime.now() + timedelta(minutes=10), '%H:%M')
+    # start_poll(bot, update, [pokemon, start_time, 'TEST'])
     # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
     # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
+    
+    h = random.randrange(1, 2)
+    m = random.randrange(0, 60)
+    timer = '{}:{}'.format(h, str(m).zfill(2))
+    start_time_vote(bot, update, [pokemon, timer, 'TEST'])
 
 data_file = 'data.pickle'
 def save_state(bot, update):
@@ -565,6 +585,21 @@ def unknown_command(bot, update):
 OTHER STUFF
 """        
 def vote_callback(bot, update):
+    print('vote_callback')
+    query = update.callback_query
+    msg_id = query.message.message_id
+    
+    if is_poll(msg_id):
+        print('poll exists')
+        return __poll_vote_callback(bot, update)
+    
+    if is_time_poll(msg_id):
+        print('time poll exists')
+        return __time_poll_vote_callback(bot, update)
+
+        
+def __poll_vote_callback(bot, update):
+    print('__poll_vote_callback')
     query = update.callback_query
     msg_id = query.message.message_id
     poll = get_poll(msg_id)
@@ -593,6 +628,36 @@ def vote_callback(bot, update):
 
     bot.answer_callback_query(query.id)
 
+
+def __time_poll_vote_callback(bot, update):
+    print('__time_poll_vote_callback')
+    query = update.callback_query
+    msg_id = query.message.message_id
+    poll = get_time_poll(msg_id)
+
+    user = query.from_user
+    try:
+        results_changed = poll.add_vote(user.id, user.name, query.data)
+    except KeyError as e:
+        logging.info('User tried to vote for an old poll that is still open')
+        return
+        
+    logging.info('{} voted {} on time poll {} with message id {}'\
+        .format(user.name, query.data, poll.id, poll.message_id))
+
+    if results_changed:
+        try:
+            query.edit_message_text(text=poll.message(),
+                                    reply_markup=poll.reply_markup(),
+                                    parse_mode='Markdown')
+        except Exception as e:
+            logging.error('Failed to edit message after a vote for time poll {} with message id {}'\
+                            .format(poll.id, poll.message_id))
+            logging.exception(e)
+
+    bot.answer_callback_query(query.id)
+
+    
 def member_joined(bot, update):
     new_members = update.message.new_chat_members
     if new_members:
