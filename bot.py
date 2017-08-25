@@ -38,10 +38,10 @@ dispatcher = updater.dispatcher
 # key: Poll.id, value: Poll
 polls = {}
 
-level_3_bosses = ['Flareon','Jolteon','Vaporeon','Gengar','Machamp','Alakazam','Arcanine']
-level_4_bosses = ['Venusaur','Blastoise','Charizard','Rhydon','Snorlax','Tyranitar','Lapras']
-level_5_bosses = ['Moltres','Zapdos','Articuno','Lugia','Ho-Oh','Mewtwo']
-allowed_bosses_to_report = sorted(level_3_bosses + level_4_bosses + level_5_bosses)
+# level_3_bosses = ['Flareon','Jolteon','Vaporeon','Gengar','Machamp','Alakazam','Arcanine']
+# level_4_bosses = ['Venusaur','Blastoise','Charizard','Rhydon','Snorlax','Tyranitar','Lapras']
+# level_5_bosses = ['Moltres','Zapdos','Articuno','Lugia','Ho-Oh','Mewtwo']
+# allowed_bosses_to_report = sorted(level_3_bosses + level_4_bosses + level_5_bosses)
 
 """
 Helper functions
@@ -507,15 +507,17 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
         send_command_message(bot, update, msg)
         raise ValueError('Passed argument is not a Pokemon')
 
-    if not pokedex.is_raid_boss(pokemon):
-        msg = '{} is not a raid boss!'.format(pokemon)
-        send_command_message(bot, update, msg)
-        raise ValueError('Pokemon is not a raid boss')
+    # Unnecessary and raid bosses might change over time
+    # if not pokedex.is_raid_boss(pokemon):
+        # msg = '{} is not a raid boss!'.format(pokemon)
+        # send_command_message(bot, update, msg)
+        # raise ValueError('Pokemon is not a raid boss')
     
-    if not pokemon in allowed_bosses_to_report:
-        msg = 'Reporting {} is not allowed'.format(pokemon)
-        send_command_message(bot, update, msg)
-        raise ValueError('Pokemon is not a raid boss or too low level')
+    # Disabled so people won't complain
+    # if not pokemon in allowed_bosses_to_report:
+        # msg = 'Reporting {} is not allowed'.format(pokemon)
+        # send_command_message(bot, update, msg)
+        # raise ValueError('Pokemon is not a raid boss or too low level')
 
     timer = args[1]
     try:
@@ -859,10 +861,10 @@ dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
-dispatcher.add_handler(CommandHandler('setbosses', set_bosses, pass_args=True))
-dispatcher.add_handler(CommandHandler('addbosses', add_bosses, pass_args=True))
-dispatcher.add_handler(CommandHandler('rembosses', rem_bosses, pass_args=True))
-dispatcher.add_handler(CommandHandler('listbosses', list_bosses, pass_args=True))
+# dispatcher.add_handler(CommandHandler('setbosses', set_bosses, pass_args=True))
+# dispatcher.add_handler(CommandHandler('addbosses', add_bosses, pass_args=True))
+# dispatcher.add_handler(CommandHandler('rembosses', rem_bosses, pass_args=True))
+# dispatcher.add_handler(CommandHandler('listbosses', list_bosses, pass_args=True))
 dispatcher.add_handler(CommandHandler('help', help))
 
 # GENERAL USER COMMANDS
