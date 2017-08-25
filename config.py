@@ -19,3 +19,5 @@ else:
     output_chat_id = -1001127550956 # '@PoGoWaasland'
     input_chat_id = -228155825 # PoGo Waasland Bot
     bot_token = '427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg'
+    
+enable_raid_command = False

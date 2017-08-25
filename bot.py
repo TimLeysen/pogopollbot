@@ -795,8 +795,8 @@ dispatcher.add_handler(CommandHandler('list', list_polls))
 dispatcher.add_handler(CommandHandler('help', help))
 
 # GENERAL USER COMMANDS
-dispatcher.add_handler(CommandHandler('raid', report_raid, pass_args=True))
-# dispatcher.add_handler(CommandHandler('deleteraid', delete_raid, pass_args=True))
+if config.enable_raid_command:
+    dispatcher.add_handler(CommandHandler('raid', report_raid, pass_args=True))
 
 # GENERAL USER COMMANDS (PM)
 dispatcher.add_handler(CommandHandler('setlevel', set_level, pass_args=True))
