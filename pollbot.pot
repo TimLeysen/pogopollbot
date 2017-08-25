@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2017-08-25 11:21+0200\n"
+"POT-Creation-Date: 2017-08-25 22:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: bot.py:723
+#: bot.py:793
 msgid ""
 "Welcome {}!\n"
 "In this chat you can create a poll by typing e.g. /start Snorlax 14:00 Park.\n"
@@ -25,36 +25,39 @@ msgid ""
 "Type /help for more information."
 msgstr ""
 
-#: raidpoll.py:61
-msgid "Subscribe"
-msgstr ""
-
-#: raidpoll.py:62
-msgid "Unsubscribe"
-msgstr ""
-
-#: raidpoll.py:88 timepoll.py:75
-msgid "DELETED"
-msgstr ""
-
-#: raidpoll.py:90 raidpoll.py:99 raidpoll.py:101 timepoll.py:77 timepoll.py:84
-#: timepoll.py:86
+#: poll.py:11 poll.py:62
 msgid "CLOSED"
 msgstr ""
 
-#: raidpoll.py:116 timepoll.py:96
+#: poll.py:12 poll.py:58
+msgid "DELETED"
+msgstr ""
+
+#: poll.py:13 poll.py:60
+msgid "FINISHED"
+msgstr ""
+
+#: raidpoll.py:72
+msgid "Subscribe"
+msgstr ""
+
+#: raidpoll.py:73
+msgid "Unsubscribe"
+msgstr ""
+
+#: raidpoll.py:121 timepoll.py:95
 msgid "Closure reason"
 msgstr ""
 
-#: raidpoll.py:128 timepoll.py:104
+#: raidpoll.py:133 timepoll.py:102
 msgid "Poll created by"
 msgstr ""
 
-#: timepoll.py:73
+#: timepoll.py:78
 msgid "ends at"
 msgstr ""
 
-#: timepoll.py:98
+#: timepoll.py:96
 msgid ""
 "You can vote for a start time here.\n"
 "{} votes will create a new raid poll."

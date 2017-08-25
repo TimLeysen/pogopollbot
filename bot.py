@@ -353,6 +353,8 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
 
     poll = polls[poll_id]
     poll.set_deleted(reason)
+    if update is None: # automatically deleted
+        poll.set_finished()
     update_poll_message(bot, poll)
     
     description = poll.description()

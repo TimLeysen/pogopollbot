@@ -5,19 +5,19 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-08-25 11:21+0200\n"
-"PO-Revision-Date: 2017-08-25 11:24+0200\n"
+"POT-Creation-Date: 2017-08-25 22:24+0200\n"
+"PO-Revision-Date: 2017-08-25 22:25+0200\n"
+"Last-Translator: \n"
 "Language-Team: \n"
+"Language: nl_BE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 "X-Generator: Poedit 2.0.3\n"
-"Last-Translator: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: nl_BE\n"
 
-#: bot.py:723
+#: bot.py:793
 msgid ""
 "Welcome {}!\n"
 "In this chat you can create a poll by typing e.g. /start Snorlax 14:00 "
@@ -39,36 +39,39 @@ msgstr ""
 "poll aanmaakt!\n"
 "Typ /help voor meer informatie."
 
-#: raidpoll.py:61
-msgid "Subscribe"
-msgstr "Ik kom"
-
-#: raidpoll.py:62
-msgid "Unsubscribe"
-msgstr "Ik kom niet meer"
-
-#: raidpoll.py:88 timepoll.py:75
-msgid "DELETED"
-msgstr "VERWIJDERD"
-
-#: raidpoll.py:90 raidpoll.py:99 raidpoll.py:101 timepoll.py:77 timepoll.py:84
-#: timepoll.py:86
+#: poll.py:11 poll.py:62
 msgid "CLOSED"
 msgstr "GESLOTEN"
 
-#: raidpoll.py:116 timepoll.py:96
+#: poll.py:12 poll.py:58
+msgid "DELETED"
+msgstr "VERWIJDERD"
+
+#: poll.py:13 poll.py:60
+msgid "FINISHED"
+msgstr "AFGELOPEN"
+
+#: raidpoll.py:72
+msgid "Subscribe"
+msgstr "Ik kom"
+
+#: raidpoll.py:73
+msgid "Unsubscribe"
+msgstr "Ik kom niet meer"
+
+#: raidpoll.py:121 timepoll.py:95
 msgid "Closure reason"
 msgstr "Reden voor sluiten"
 
-#: raidpoll.py:128 timepoll.py:104
+#: raidpoll.py:133 timepoll.py:102
 msgid "Poll created by"
 msgstr "Poll aangemaakt door"
 
-#: timepoll.py:73
+#: timepoll.py:78
 msgid "ends at"
 msgstr "tot"
 
-#: timepoll.py:98
+#: timepoll.py:96
 msgid ""
 "You can vote for a start time here.\n"
 "{} votes will create a new raid poll."

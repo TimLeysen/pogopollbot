@@ -76,19 +76,13 @@ class TimePoll(Poll):
     def description(self):
         desc = '#{} {} {} ({}: {})'.format(self.id_string(), self.pokemon,
             self.location, _('ends at'), to_string(self.end_time))
-        if self.deleted:
-            desc += ' [{}]'.format(_('DELETED'))
-        elif self.closed:
-            desc += ' [{}]'.format(_('CLOSED'))
+        desc += super().description_suffix()
         return desc
 
     def message(self):
         msg = ''
         msg += '<b>{}</b> (tot {})'.format(self.pokemon, to_string(self.end_time))
-        if self.deleted:
-            msg += ' <b>[{}]</b>'.format(_('DELETED'))
-        elif self.closed:
-            msg += ' <b>[{}]</b>'.format(_('CLOSED'))
+        msg += super().description_suffix()
         msg += '\n'
         msg += '{}'.format(self.location)
         
