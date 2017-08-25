@@ -121,6 +121,16 @@ def update_poll_message(bot, poll):
                         .format(poll.id, poll.message_id))
         logging.exception(e)
 
+def log_command(bot, update, command, args = None):
+    msg = update.message
+    user = msg.from_user
+    command = '{} {}'.format(command, ', '.join(args) if args is not None else '')
+    if msg.chat.type == Chat.PRIVATE:
+        chat_title = 'private'
+    else:
+        chat_title = update.message.chat.title
+    logging.info('{} ({}) used command \'{}\' in chat {}'.format(user.name, user.id, command, chat_title))
+        
 """
 Bot commands
 """
@@ -158,6 +168,7 @@ def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_t
 
 
 def start_poll(bot, update, args):
+    log_command(bot, update, start_poll.__name__, args)
     if not authorized(bot, update):
         return
 
@@ -222,6 +233,7 @@ def parse_args_close_poll(bot, update, args):
     return id, reason
     
 def close_poll(bot, update, args):
+    log_command(bot, update, close_poll.__name__, args)
     if not authorized(bot, update):
         return
 
@@ -263,6 +275,7 @@ def __close_poll(bot, polls, poll_id, reason=None, update=None):
 
     
 def delete_all_polls(bot, update):
+    log_command(bot, update, delete_all_polls.__name__)
     if not admin(bot, update):
         return
     
@@ -306,6 +319,7 @@ def parse_args_delete_poll(bot, update, args):
     
     
 def delete_poll(bot, update, args):
+    log_command(bot, update, delete_poll.__name__, args)
     if not authorized(bot, update):
         return
 
@@ -351,6 +365,7 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
     del polls[poll_id]
 
 def list_polls(bot, update):
+    log_command(bot, update, list_polls.__name__)
     if not authorized(bot, update):
         return
 
@@ -364,6 +379,7 @@ def list_polls(bot, update):
     send_command_message(bot, update, msg)
 
 def help(bot, update):
+    log_command(bot, update, help.__name__)
     is_input_chat = update.message.chat_id == config.input_chat_id
     if not (private_chat(bot,update) or is_input_chat):
         return
@@ -449,6 +465,7 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
     
     
 def report_raid(bot, update, args):
+    log_command(bot, update, report_raid.__name__, args)
     if update.message.chat_id != config.output_chat_id and not authorized(bot, update):
         return
 
@@ -486,51 +503,15 @@ def report_raid(bot, update, args):
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
     
     dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
-    
 
-# def __parse_args_delete_raid(bot, update, args):
-    # if len(args) < 1:
-        # msg = 'Incorrect format. Usage: /deleteraid <id> (<reason>). For example: /delete 15, /delete 15 Duplicate poll'
-        # send_command_message(bot, update, msg)
-        # raise ValueError('Incorrect format: expected at least 1 argument')
-
-    # id = parse_poll_id_arg(bot, update, args[0])
-    # reason = ' '.join(args[1:]) if len(args) > 1 else None
-
-    # return id, reason
-    
-    
-# def delete_raid(bot, update, args):
-    # normal_user = update.message.chat_id == config.output_chat_id
-    # power_user = update.message.chat_id == config.input_chat_id    
-    # if not (normal_user or power_user):
-        # return
-
-    # if update.message.chat_id == config.output_chat_id:
-        # try:
-            # poll_id, reason = __parse_args_delete_raid(bot, update, args)
-        # except ValueError as e:
-            # logging.info(e)
-            # return
-        
-        # Check if the user that tries to delete a time poll is the creator of that poll or an admin
-        # poll = time_polls[poll_id]
-        # user_name = update.message.from_user.name
-        # own_poll = user_name == poll.creator
-        # if not own_poll and not admin(bot, update, print_warning=False):
-            # msg = '{}, you cannot delete a raid that you did not create yourself'.format(user_name)
-            # send_command_message(bot, update, msg)
-            # return
-
-        # TODO
-        # __delete_time_poll(bot, poll_id, reason, update)   
-    
     
 """
 USER COMMANDS (PM)
 """
 
 def set_level(bot, update, args):
+    log_command(bot, update, set_level.__name__, args)
+    
     if not private_chat(bot, update):
         return
 
@@ -563,11 +544,13 @@ ADMIN COMMANDS
 """
     
 def chat_id(bot, update):
+    log_command(bot, update, chat_id.__name__)
     chat_id = update.message.chat_id
     msg = 'This chat\'s id is {}'.format(chat_id)
     send_command_message(bot, update, msg)
 
 def test(bot, update):
+    log_command(bot, update, test.__name__)
     # if not admin(bot, update):
     if not config.test_version:
         return
@@ -585,6 +568,7 @@ def test(bot, update):
 
 data_file = 'data.pickle'
 def save_state(bot, update):
+    log_command(bot, update, save_state.__name__)
     if not admin(bot, update):
         return
 
@@ -607,6 +591,7 @@ def __save_state():
         return False
         
 def load_state(bot, update):
+    log_command(bot, update, load_state.__name__)
     if not admin(bot, update):
         return
 
@@ -628,6 +613,7 @@ def __load_state():
         return False
 
 def quit(bot, update):
+    log_command(bot, update, quit.__name__)
     if not admin(bot, update):
         return
     
