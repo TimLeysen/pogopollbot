@@ -45,14 +45,14 @@ Helper functions
 # Sends a message to both the input and output chats and logs it
 # Messages: created/closed/deleted a poll
 def send_message(bot, msg):
-    logging.info(msg)
+    logging.info('send message: {}'.format(msg))
     bot.send_message(chat_id=config.input_chat_id, text=msg, disable_web_page_preview=True)
     bot.send_message(chat_id=config.output_chat_id, text=msg, disable_web_page_preview=True)
 
 # Send a message to the channel where a user used a command
 # This is mainly for giving information when using a command wrong.
 def send_command_message(bot, update, msg):
-    logging.info(msg)
+    logging.info('send command message: {}'.format(msg))
     bot.send_message(chat_id=update.message.chat_id, text=msg, disable_web_page_preview=True)
 
 # Test if a user is allowed to send commands to the bot
