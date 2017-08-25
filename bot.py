@@ -588,15 +588,23 @@ def save_state(bot, update):
     if not admin(bot, update):
         return
 
+    if __save_state():
+        send_command_message(bot, update, 'Saved state to file')
+    else:
+        send_command_message(bot, update, 'Failed to save state to file')
+
+def __save_state():
     try:
         with open(data_file, 'wb') as f:
             data = {'id_generator' : Poll.id_generator,                    
                     'polls' : polls}
             pickle.dump(data, f)
-        send_command_message(bot, update, 'Saved state to file')
+        logging.info('Saved state to file')
+        return True
     except Exception as e:
-        send_command_message(bot, update, 'Failed to save state to file')
-        logging.exception(e)
+        logging.error('Failed to save state to file')
+        logging.exception(e)    
+        return False
         
 def load_state(bot, update):
     if not admin(bot, update):
@@ -822,3 +830,5 @@ updater.start_polling()
 logging.info('Ready to work!')
 updater.bot.send_message(chat_id=config.input_chat_id, text='Ready to work!')
 updater.idle()
+logging.error('after updater.idle()')
+__save_state()
