@@ -6,8 +6,14 @@ import re
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import zope.event
 
+import config
 import pokedex
 from poll import Poll
+
+
+if not config.enable_translations:
+    _ = lambda s: s
+
 
 def from_string(t : str):
     return datetime.strptime(t, '%H:%M')

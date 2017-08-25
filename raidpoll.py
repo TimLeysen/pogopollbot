@@ -3,14 +3,21 @@ import itertools
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
+import config
 import pokedex
 from poll import Poll
+
+
+if not config.enable_translations:
+    _ = lambda s: s
+
 
 def from_string(t : str):
     return datetime.strptime(t, '%H:%M')
 
 def to_string(t : datetime):
     return datetime.strftime(t, '%H:%M')
+
 
 class Voter:
     def __init__(self, name, level):

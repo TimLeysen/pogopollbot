@@ -19,5 +19,15 @@ else:
     
 enable_raid_command = False
 
-es = gettext.translation('pollbot', localedir='locale', languages=['nl'])
-es.install()
+
+
+# TRANSLATIONS
+# See README.md for more information on how to add translations
+
+enable_translations = False
+
+if enable_translations:
+    es = gettext.translation('pollbot', localedir='locale', languages=['nl'])
+    es.install()
+else:
+    _ = lambda s: s
