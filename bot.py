@@ -715,13 +715,13 @@ def member_joined(bot, update):
     if new_members:
         names = [x.name for x in new_members]
         logging.info('member(s) joined: {}'.format(','.join(names)))
-        msg = 'Welkom {}!\n'\
-              'In deze chat kan je een poll aanmaken door bvb. /start Snorlax 14:00 Park Sint-Niklaas te typen.\n'\
-              'Polls worden automatisch gesloten als de start tijd verstrijkt. Je kan een poll ook manueel sluiten door bvb. '\
-              '/close 1 te typen. Het nummer van de poll kan je zien door /list te typen.\n'\
-              'Pols eerst even in de chat groep voor een start uur voordat je een nieuwe poll aanmaakt!\n'\
-              'Type /help voor meer informatie.\n'\
-                .format(','.join(names))
+        msg = _('Welcome {}!\n'
+                'In this chat you can create a poll by typing e.g. /start Snorlax 14:00 Park.\n'
+                'Polls are automatically closed when the start time elapses.\n'
+                'You can also manually close a poll by typing e.g. /close 1. You can see the number of the poll by typing /list.\n'
+                'Please discuss a proper starting time in the main chat before creating a new poll!\n'
+                'Type /help for more information.'
+                ).format(','.join(names))
         send_command_message(bot, update, msg)
     
 def error_callback(bot, update, error):

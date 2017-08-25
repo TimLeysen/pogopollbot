@@ -8,11 +8,6 @@ class Poll(metaclass=ABCMeta):
 
     id_generator = itertools.count(1)
 
-    closed_text = 'GESLOTEN'
-    closed_reason_text = 'Gesloten wegens:'
-    deleted_text = 'VERWIJDERD'
-    created_by_text = 'Poll aangemaakt door'
-    
     def __init__(self, end_time : datetime, creator):
         self.global_id = next(self.id_generator)
         self.id = (self.global_id-1)%100 +1

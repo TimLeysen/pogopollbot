@@ -69,21 +69,21 @@ class TimePoll(Poll):
         return InlineKeyboardMarkup([row])
         
     def description(self):
-        desc = '#{} {} {} (ends: {})'.format(self.id_string(), self.pokemon,
-            self.location, to_string(self.end_time))
+        desc = '#{} {} {} ({}: {})'.format(self.id_string(), self.pokemon,
+            self.location, _('ends at'), to_string(self.end_time))
         if self.deleted:
-            desc += ' [{}]'.format(self.deleted_text)
+            desc += ' [{}]'.format(_('DELETED'))
         elif self.closed:
-            desc += ' [{}]'.format(self.closed_text)        
+            desc += ' [{}]'.format(_('CLOSED'))
         return desc
 
     def message(self):
         msg = ''
         msg += '<b>{}</b> (tot {})'.format(self.pokemon, to_string(self.end_time))
         if self.deleted:
-            msg += ' <b>[{}]</b>'.format(self.deleted_text)        
+            msg += ' <b>[{}]</b>'.format(_('DELETED'))
         elif self.closed:
-            msg += ' <b>[{}]</b>'.format(self.closed_text)
+            msg += ' <b>[{}]</b>'.format(_('CLOSED'))
         msg += '\n'
         msg += '{}'.format(self.location)
         
@@ -93,14 +93,14 @@ class TimePoll(Poll):
         
         msg += '\n\n'
         if self.closed and self.closed_reason:
-            msg += '{} {}\n\n'.format(self.closed_reason_text, self.closed_reason)
-        msg += 'Hier kan je stemmen voor de start tijd.\n'
-        msg += 'Minimum 5 stemmen zijn nodig om een poll te creëren voor die start tijd.\n'
-        msg += '\n'
+            msg += '{}: {}\n\n'.format(_('Closure reason'), self.closed_reason)
+        desc = _('You can vote for a start time here.\n'
+                 '{} votes will create a new raid poll.').format(self.min_votes)
+        msg += desc + '\n\n'
         for time, voters in self.times.items():
             msg += '<b>{}</b> [{}]: {}\n'.format(time, len(voters), ', '.join(voters.values()))
         msg += '\n'
-        msg += '{} {}\n'.format(self.created_by_text, self.creator)
+        msg += '{} {}\n'.format(_('Poll created by'), self.creator)
         msg += '#{}'.format(self.id_string())
         return msg
     

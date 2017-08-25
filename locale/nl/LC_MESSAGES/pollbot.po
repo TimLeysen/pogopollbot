@@ -1,0 +1,77 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2017-08-25 11:21+0200\n"
+"PO-Revision-Date: 2017-08-25 11:24+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.0.3\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: nl_BE\n"
+
+#: bot.py:723
+msgid ""
+"Welcome {}!\n"
+"In this chat you can create a poll by typing e.g. /start Snorlax 14:00 "
+"Park.\n"
+"Polls are automatically closed when the start time elapses.\n"
+"You can also manually close a poll by typing e.g. /close 1. You can see the "
+"number of the poll by typing /list.\n"
+"Please discuss a proper starting time in the main chat before creating a new "
+"poll!\n"
+"Type /help for more information."
+msgstr ""
+"Welkom {}!\n"
+"In deze chat kan je een poll aanmaken door bvb. /start Snorlax 14:00 Park "
+"Sint-Niklaas te typen.\n"
+"Polls worden automatisch gesloten als de start tijd verstrijkt.\n"
+"Je kan een poll ook manueel sluiten door bvb. /close 1 te typen. Het nummer "
+"van de poll kan je zien door /list te typen.\n"
+"Pols eerst even in de chat groep voor een start uur voordat je een nieuwe "
+"poll aanmaakt!\n"
+"Typ /help voor meer informatie."
+
+#: raidpoll.py:61
+msgid "Subscribe"
+msgstr "Ik kom"
+
+#: raidpoll.py:62
+msgid "Unsubscribe"
+msgstr "Ik kom niet meer"
+
+#: raidpoll.py:88 timepoll.py:75
+msgid "DELETED"
+msgstr "VERWIJDERD"
+
+#: raidpoll.py:90 raidpoll.py:99 raidpoll.py:101 timepoll.py:77 timepoll.py:84
+#: timepoll.py:86
+msgid "CLOSED"
+msgstr "GESLOTEN"
+
+#: raidpoll.py:116 timepoll.py:96
+msgid "Closure reason"
+msgstr "Reden voor sluiten"
+
+#: raidpoll.py:128 timepoll.py:104
+msgid "Poll created by"
+msgstr "Poll aangemaakt door"
+
+#: timepoll.py:73
+msgid "ends at"
+msgstr "tot"
+
+#: timepoll.py:98
+msgid ""
+"You can vote for a start time here.\n"
+"{} votes will create a new raid poll."
+msgstr ""
+"Hier kan je stemmen voor een start tijd.\n"
+"{} stemmen maakt automatisch een nieuwe raid poll aan."

@@ -58,8 +58,8 @@ class Voters:
 class RaidPoll(Poll):
     # The vote count of the last option is not visualized!
     # This options is used to unsubscribe.
-    options = ['Ik kom',
-               'Ik kom niet meer']
+    options = [_('Subscribe'),
+               _('Unsubscribe')]
     show_names = [True, False]
     
     @staticmethod
@@ -85,9 +85,9 @@ class RaidPoll(Poll):
         desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon,
             to_string(self.end_time), self.location)
         if self.deleted:
-            desc += ' [{}]'.format(self.deleted_text)
+            desc += ' [{}]'.format(_('DELETED'))
         elif self.closed:
-            desc += ' [{}]'.format(self.closed_text)
+            desc += ' [{}]'.format(_('CLOSED'))
         return desc
 
     def message(self):
@@ -96,9 +96,9 @@ class RaidPoll(Poll):
         msg = ''
         msg += '<b>{} {}</b>'.format(self.pokemon, self.end_time)
         if self.deleted:
-            msg += ' <b>[{}]</b>'.format(self.deleted_text)
+            msg += ' <b>[{}]</b>'.format(_('DELETED'))
         elif self.closed:
-            msg += ' <b>[{}]</b>'.format(self.closed_text)
+            msg += ' <b>[{}]</b>'.format(_('CLOSED'))
         msg += '\n'
         msg += '{}'.format(self.location)
         
@@ -113,7 +113,7 @@ class RaidPoll(Poll):
         msg += 'Weaknesses: {}\n\n'.format(', '.join(weaknesses))
         
         if self.closed and self.closed_reason:
-            msg += '{} {}\n\n'.format(self.closed_reason_text, self.closed_reason)
+            msg += '{}: {}\n\n'.format(_('Closure reason'), self.closed_reason)
         
         for i in range(0, len(self.all_voters)):
             voters = self.all_voters[i]
@@ -125,7 +125,7 @@ class RaidPoll(Poll):
                     msg += '  {} {} {}\n'.format(prefix, voter.name, suffix)
             msg += '\n'
 
-        msg += '{} {}\n'.format(RaidPoll.created_by_text, self.creator)
+        msg += '{} {}\n'.format(_('Poll created by'), self.creator)
         msg += '#{}'.format(self.id_string())
         return msg
 
