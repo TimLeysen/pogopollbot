@@ -8,7 +8,6 @@ def print_countdown(bot, i):
     bot.send_message(chat_id=chat_id, text=str(5-i))
     
 def check_poll_count(bot, count):
-    print('check count {}'.format(count))
     time.sleep(5)
 
     if count == 100:
