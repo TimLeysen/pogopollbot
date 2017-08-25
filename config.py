@@ -17,14 +17,14 @@ else:
     input_chat_id = -228155825 # PoGo Waasland Bot
     bot_token = '427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg'
     
-enable_raid_command = False
+enable_raid_command = True
 
 
 
 # TRANSLATIONS
 # See README.md for more information on how to add translations
 
-enable_translations = False
+enable_translations = True
 
 if enable_translations:
     es = gettext.translation('pollbot', localedir='locale', languages=['nl'])
