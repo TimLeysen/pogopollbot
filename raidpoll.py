@@ -60,6 +60,10 @@ class Voters:
                 return i
             i += 1
         return -1
+        
+    def sort_by_level(self):
+        self.voters = sorted(self.voters, key = lambda x : x.level, reverse = True)
+
 
 
 class RaidPoll(Poll):
@@ -145,3 +149,5 @@ class RaidPoll(Poll):
         if choice is 1: # I can't come (anymore)
             # don't care about these users so don't store anything
             self.all_voters[0].remove(name)
+            
+        self.all_voters[0].sort_by_level()
