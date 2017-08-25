@@ -38,6 +38,11 @@ dispatcher = updater.dispatcher
 # key: Poll.id, value: Poll
 polls = {}
 
+level_3_bosses = ['Flareon','Jolteon','Vaporeon','Gengar','Machamp','Alakazam','Arcanine']
+level_4_bosses = ['Venusaur','Blastoise','Charizard','Rhydon','Snorlax','Tyranitar','Lapras']
+level_5_bosses = ['Moltres','Zapdos','Articuno','Lugia','Ho-Oh','Mewtwo']
+allowed_bosses_to_report = sorted(level_3_bosses + level_4_bosses + level_5_bosses)
+
 """
 Helper functions
 """
@@ -378,6 +383,76 @@ def list_polls(bot, update):
 
     send_command_message(bot, update, msg)
 
+def __verify_pokemon(bot, update, pokemon_list):
+    for pokemon in pokemon_list:
+        if not pokedex.name_exists(pokemon):
+            msg = '{} is not a Pokemon! Check your spelling!'.format(pokemon)
+            send_command_message(bot, update, msg)
+            return False
+    return True
+    
+def __print_bosses():
+    return ', '.join(allowed_bosses_to_report)    
+    
+def set_bosses(bot, update, args):
+    log_command(bot, update, set_bosses.__name__)
+    if not authorized(bot, update):
+        return
+    
+    if not __verify_pokemon(bot, update, args):
+        return
+
+    bosses = sorted(list(set([pokedex.capwords(x) for x in args])))
+    global allowed_bosses_to_report
+    allowed_bosses_to_report = bosses
+    
+    msg = 'Users can now report the following raid bosses: {}'\
+            .format(__print_bosses())
+    send_command_message(bot, update, msg)
+
+def add_bosses(bot, update, args):
+    log_command(bot, update, add_bosses.__name__)
+    if not authorized(bot, update):
+        return
+
+    if not __verify_pokemon(bot, update, args):
+        return
+
+    new_bosses = sorted(list(set([pokedex.capwords(x) for x in args])))
+    global allowed_bosses_to_report
+    allowed_bosses_to_report.extend([x for x in new_bosses if x not in allowed_bosses_to_report])
+    allowed_bosses_to_report = sorted(allowed_bosses_to_report)
+    
+    msg = 'Users can now report the following raid bosses: {}'\
+            .format(__print_bosses())
+    send_command_message(bot, update, msg)
+
+def rem_bosses(bot, update, args):
+    log_command(bot, update, rem_bosses.__name__)
+    if not authorized(bot, update):
+        return
+
+    if not __verify_pokemon(bot, update, args):
+        return
+
+    new_bosses = sorted(list(set([pokedex.capwords(x) for x in args])))
+    global allowed_bosses_to_report
+    allowed_bosses_to_report = [x for x in allowed_bosses_to_report if x not in new_bosses]
+    allowed_bosses_to_report = sorted(allowed_bosses_to_report)
+
+    msg = 'Users can now report the following raid bosses: {}'\
+            .format(__print_bosses())
+    send_command_message(bot, update, msg)
+    
+def list_bosses(bot, update, args):
+    log_command(bot, update, list_bosses.__name__)
+    if not authorized(bot, update):
+        return
+
+    msg = 'Users can report the following raid bosses: {}'\
+            .format(__print_bosses())
+    send_command_message(bot, update, msg)
+    
 def help(bot, update):
     log_command(bot, update, help.__name__)
     is_input_chat = update.message.chat_id == config.input_chat_id
@@ -419,10 +494,6 @@ def help(bot, update):
 """
 USER COMMANDS (CHAT)
 """
-level_3_bosses = ['Flareon','Jolteon','Vaporeon','Gengar','Machamp','Alakazam','Arcanine']
-level_4_bosses = ['Venusaur','Blastoise','Charizard','Rhydon','Snorlax','Tyranitar','Lapras']
-level_5_bosses = ['Moltres','Zapdos','Articuno','Lugia']
-allowed_bosses = level_3_bosses + level_4_bosses + level_5_bosses
 def __parse_args_report_raid(bot, update, args): # returns raid boss : str, timer : str, location : str
     if len(args) < 3:
         msg = 'Incorrect format. Usage: /raid <raid-boss> <raid-timer> <location>. '\
@@ -436,13 +507,15 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
         send_command_message(bot, update, msg)
         raise ValueError('Passed argument is not a Pokemon')
 
-    if not pokemon in allowed_bosses:
-        msg = '{} is not a raid boss or too low level'.format(pokemon)
+    if not pokedex.is_raid_boss(pokemon):
+        msg = '{} is not a raid boss!'.format(pokemon)
+        send_command_message(bot, update, msg)
+        raise ValueError('Pokemon is not a raid boss')
+    
+    if not pokemon in allowed_bosses_to_report:
+        msg = 'Reporting {} is not allowed'.format(pokemon)
         send_command_message(bot, update, msg)
         raise ValueError('Pokemon is not a raid boss or too low level')
-    # not needed and would require code changes when raid bosses change
-    # if not pokedex.is_raid_boss(args[0]):
-        # raise Exception('{} is not a raid boss')
 
     timer = args[1]
     try:
@@ -786,6 +859,10 @@ dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
 dispatcher.add_handler(CommandHandler('list', list_polls))
+dispatcher.add_handler(CommandHandler('setbosses', set_bosses, pass_args=True))
+dispatcher.add_handler(CommandHandler('addbosses', add_bosses, pass_args=True))
+dispatcher.add_handler(CommandHandler('rembosses', rem_bosses, pass_args=True))
+dispatcher.add_handler(CommandHandler('listbosses', list_bosses, pass_args=True))
 dispatcher.add_handler(CommandHandler('help', help))
 
 # GENERAL USER COMMANDS
