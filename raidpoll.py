@@ -108,6 +108,8 @@ class RaidPoll(Poll):
         msg += '{}'.format(self.location)
         
         if self.deleted:
+            if self.deleted_reason is not None:
+                msg += '\n{}'.format(self.deleted_reason)
             msg += '\n#{}'.format(self.id_string())
             return msg
         
