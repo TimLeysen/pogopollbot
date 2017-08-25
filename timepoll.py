@@ -29,6 +29,7 @@ class VoteCountReachedEvent:
     
 class TimePoll(Poll):
     min_votes = 5
+    max_times = 5
     
     def __init__(self, pokemon, end_time : datetime, location, creator):
         super().__init__(end_time, creator)
@@ -61,10 +62,8 @@ class TimePoll(Poll):
                 else:
                     break
         
-        # only keep the last 5 times
-        max_times = 5
-        if len(times) > max_times:
-            num_to_remove = len(times)-max_times
+        if len(times) > self.max_times:
+            num_to_remove = len(times) - self.max_times
             return times[num_to_remove:]
         return times
 
