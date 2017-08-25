@@ -21,10 +21,10 @@ class Poll(metaclass=ABCMeta):
         self.closed = False
         self.closed_reason = None
         self.deleted = False
-        self.delete_reason = None
+        self.deleted_reason = None
         self.finished = False
         
-        self.message_id = None        
+        self.message_id = None
     
     def id_string(self):
         return str(self.id).zfill(3)
@@ -35,7 +35,7 @@ class Poll(metaclass=ABCMeta):
         
     def set_deleted(self, reason = None):
         self.deleted = True
-        self.delete_reason = reason
+        self.deleted_reason = reason
         
     def set_finished(self):
         self.finished = True
