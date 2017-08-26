@@ -232,7 +232,7 @@ def close_poll_on_timer(bot, poll_id, silent=False):
         logging.warning('close_poll_on_timer: poll end time is earlier than now. '\
                         'Closing poll anyway. {}'.format(poll.description()))
 
-    __close_poll(bot, poll_id, reason='tijd verstreken', update=None, silent=silent)
+    __close_poll(bot, poll_id, reason=_('time expired'), update=None, silent=silent)
 
 def parse_args_close_poll(bot, update, args):
     if len(args) < 1:
