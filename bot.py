@@ -835,7 +835,7 @@ def HandleVoteCountReachedEvent(event):
     logging.info('got event {} {}'.format(event.poll_id, event.start_time))
     
     # create a new poll if one doesn't exist yet
-    for poll in polls:
+    for id, poll in polls.items():
         if type(poll) is RaidPoll:
             # Only allow 1 automatic poll for now
             if poll.time_poll_id == event.poll_id:# and poll.end_time == event.start_time:
