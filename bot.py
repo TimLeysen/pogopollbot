@@ -366,7 +366,7 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
         msg = '{} deleted a poll: {}.'.format(update.message.from_user.name, description)
         if reason is not None:
             msg += ' Reason: {}.'.format(reason)
-        send_message(bot, msg)
+        send_command_message(bot, update, msg)
     else:
         msg = 'Automatically deleted a poll: {}.'.format(description)
         # don't print useless information to main chat!
