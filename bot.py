@@ -538,7 +538,7 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
         t = datetime.strptime(timer, '%H:%M').time()
         timer = timedelta(hours=t.hour, minutes=t.minute)
     except:
-        msg = 'Incorrect timer format. Expected HH:MM. For example: 13:00.'
+        msg = 'Incorrect timer format. Expected HH:MM. For example: 1:45.'
         send_command_message(bot, update, msg)
         raise ValueError('Incorrect time format. Expected HH:MM.')
 
