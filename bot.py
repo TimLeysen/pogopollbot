@@ -226,7 +226,7 @@ def close_poll_on_timer(bot, poll_id, silent=False):
         logging.warning('close_poll_on_timer: poll end time is earlier than now. '\
                         'Closing poll anyway. {}'.format(poll.description()))
 
-    __close_poll(bot, polls, poll_id, reason='tijd verstreken', update=None, silent=silent)
+    __close_poll(bot, poll_id, reason='tijd verstreken', update=None, silent=silent)
 
 def parse_args_close_poll(bot, update, args):
     if len(args) < 1:
@@ -250,13 +250,13 @@ def close_poll(bot, update, args):
         logging.info(e)
         return
 
-    __close_poll(bot, polls, poll_id, reason, update, silent=False)
+    __close_poll(bot, poll_id, reason, update, silent=False)
     
     return
 
 # TODO: id exists is checked in close_poll (user command) but also here...
-def __close_poll(bot, polls, poll_id, reason=None, update=None, silent=False):
-    if poll_id not in polls:
+def __close_poll(bot, poll_id, reason=None, update=None, silent=False):
+    if not poll_exists(poll_id):
         logging.info('Poll does not exist anymore')
         return
 
@@ -852,7 +852,7 @@ def HandleVoteCountReachedEvent(event):
     poll.time_poll_id = time_poll.id
     
     # Only allow 1 automatic poll for now
-    __close_poll(updater.bot, polls, time_poll.id, reason=None, update=None, silent=True)
+    __close_poll(updater.bot, time_poll.id, reason=None, update=None, silent=True)
 
 zope.event.subscribers.append(HandleVoteCountReachedEvent)
         
