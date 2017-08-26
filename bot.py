@@ -207,7 +207,7 @@ def __start_poll(pokemon, start_time, location, creator):
     msg += 'You can subscribe in {}'.format(config.output_channel_id)
     send_message(bot, msg)
 
-    dispatcher.run_async(close_poll_on_timer, *(bot, poll.id))
+    dispatcher.run_async(close_poll_on_timer, *(bot, poll.id, False))
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
     
     dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
@@ -215,7 +215,7 @@ def __start_poll(pokemon, start_time, location, creator):
     return poll
 
     
-def close_poll_on_timer(bot, poll_id):
+def close_poll_on_timer(bot, poll_id, silent=False):
     poll = polls[poll_id]
     delta = poll.end_time - datetime.now()
     if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
@@ -224,7 +224,7 @@ def close_poll_on_timer(bot, poll_id):
         return
 
     time.sleep(delta.seconds)
-    __close_poll(bot, polls, poll_id, 'tijd verstreken')
+    __close_poll(bot, polls, poll_id, reason='tijd verstreken', update=None, silent=silent)
 
 def parse_args_close_poll(bot, update, args):
     if len(args) < 1:
@@ -248,12 +248,12 @@ def close_poll(bot, update, args):
         logging.info(e)
         return
 
-    __close_poll(bot, polls, poll_id, reason, update)
+    __close_poll(bot, polls, poll_id, reason, update, silent=False)
     
     return
 
 # TODO: id exists is checked in close_poll (user command) but also here...
-def __close_poll(bot, polls, poll_id, reason=None, update=None):
+def __close_poll(bot, polls, poll_id, reason=None, update=None, silent=False):
     if poll_id not in polls:
         logging.info('Poll does not exist anymore')
         return
@@ -276,7 +276,9 @@ def __close_poll(bot, polls, poll_id, reason=None, update=None):
             msg += ' Reason: {}.'.format(reason)
     else:
         msg = 'Automatically closed a poll: {}.'.format(poll.description())
-    send_message(bot, msg)
+    
+    if not silent:
+        send_message(bot, msg)
 
     
 def delete_all_polls(bot, update):
@@ -576,7 +578,7 @@ def report_raid(bot, update, args):
     msg += 'You can vote for a start time in {}'.format(config.output_channel_id)
     send_message(bot, msg)
     
-    dispatcher.run_async(close_poll_on_timer, *(bot, poll.id))
+    dispatcher.run_async(close_poll_on_timer, *(bot, poll.id, True))
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
     
     dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
