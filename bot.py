@@ -210,20 +210,22 @@ def __start_poll(pokemon, start_time, location, creator):
     dispatcher.run_async(close_poll_on_timer, *(bot, poll.id, False))
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
     
-    dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
+    # dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
     
     return poll
 
     
 def close_poll_on_timer(bot, poll_id, silent=False):
     poll = polls[poll_id]
-    delta = poll.end_time - datetime.now()
-    if delta.seconds < 0: # test poll, poll with wrong time or exclusive raid
-        logging.info('Poll is not closed automatically because start time is earlier than now: {}')\
-            .format(poll.description())
-        return
+    
+    if poll.end_time > datetime.now():
+        delta = poll.end_time - datetime.now()
+        time.sleep(delta.seconds)
+    # FIXME!
+    else: # test poll or poll with wrong time or too many worker threads busy and this function is called way too late!
+        logging.warning('close_poll_on_timer: poll end time is earlier than now. '\
+                        'Closing poll anyway. {}'.format(poll.description()))
 
-    time.sleep(delta.seconds)
     __close_poll(bot, polls, poll_id, reason='tijd verstreken', update=None, silent=silent)
 
 def parse_args_close_poll(bot, update, args):
@@ -301,14 +303,14 @@ def delete_all_polls(bot, update):
 
 def delete_poll_on_timer(bot, poll_id):
     poll = polls[poll_id]
-    delta = poll.end_time - datetime.now()
-    if delta.seconds < 0: # test poll or poll with wrong time or exclusive raid
-        logging.info('Poll is not deleted automatically because start time is earlier than now: {}')\
-            .format(poll.description())
-        return
+    delta = timedelta(hours=1)
+    if (poll.end_time + delta) > datetime.now():
+        delta = poll.end_time + delta - datetime.now()
+        time.sleep(delta.seconds)    
+    else: # test poll or poll with wrong time or too many worker threads busy and this function is called way too late!
+        logging.warning('delete_poll_on_timer: poll end time is earlier than now. '\
+                        'Deleting poll anyway. {}'.format(poll.description()))
 
-    # delete 1 hour after end time
-    time.sleep(delta.seconds + 3600)
     __delete_poll(bot, poll_id)
 
 
@@ -581,7 +583,7 @@ def report_raid(bot, update, args):
     dispatcher.run_async(close_poll_on_timer, *(bot, poll.id, True))
     dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
     
-    dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
+    # dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
 
     
 """
