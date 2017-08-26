@@ -20,12 +20,14 @@ def to_string(t : datetime):
 
 
 class Voter:
-    def __init__(self, name, level):
+    def __init__(self, id, name, level):
+        self.id = id
         self.name = name
         self.level = level
         self.count = 1
 
-    def add_player(self, level):
+    def add_player(self, name, level):
+        self.name = name
         self.level = level
         self.count +=1
 
@@ -35,15 +37,15 @@ class Voters:
         self.voters = []
         return
 
-    def add(self, name, level):
-        idx = self.__index_of(name)
+    def add(self, id, name, level):
+        idx = self.__index_of(id)
         if idx != -1:
-            self.voters[idx].add_player(level)
+            self.voters[idx].add_player(name, level)
         else:
-            self.voters.append(Voter(name, level))
+            self.voters.append(Voter(id, name, level))
 
-    def remove(self, name):
-        idx = self.__index_of(name)
+    def remove(self, id):
+        idx = self.__index_of(id)
         if idx != -1:
             del self.voters[idx]
 
@@ -53,10 +55,10 @@ class Voters:
             count += voter.count
         return count
     
-    def __index_of(self, name):
+    def __index_of(self, id):
         i = 0
         for voter in self.voters:
-            if voter.name == name:
+            if voter.id == id:
                 return i
             i += 1
         return -1
@@ -138,14 +140,14 @@ class RaidPoll(Poll):
         msg += '#{}'.format(self.id_string())
         return msg
 
-    def add_vote(self, name, level, choice):
+    def add_vote(self, id, name, level, choice):
         # clunky but whatever
         if choice is 0: # I can come
             # Multiple votes will increase a voter's player count
-            self.all_voters[0].add(name, level)
+            self.all_voters[0].add(id, name, level)
         
         if choice is 1: # I can't come (anymore)
             # don't care about these users so don't store anything
-            self.all_voters[0].remove(name)
+            self.all_voters[0].remove(id)
             
         self.all_voters[0].sort_by_level()

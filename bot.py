@@ -751,7 +751,8 @@ def __raid_poll_vote_callback(bot, update):
     level = database.get_level(query.from_user.id)
     
     try:
-        poll.add_vote(query.from_user.name, level, int(query.data))
+        user = query.from_user
+        poll.add_vote(user.id, user.name, level, int(query.data))
     except KeyError as e:
         logging.info('User tried to vote for an old poll that is still open')
         return
@@ -852,7 +853,7 @@ def HandleVoteCountReachedEvent(event):
     for user_id, user_name in time_poll.get_users(event.start_time).items():
         logging.info('Adding {} ({}) to raid poll {} ({})'.\
             format(user_name, user_id, poll.id, poll.description()))
-        poll.add_vote(user_name, database.get_level(user_id), 0)
+        poll.add_vote(user_id, user_name, database.get_level(user_id), 0)
         
     update_poll_message(updater.bot, poll)
 
