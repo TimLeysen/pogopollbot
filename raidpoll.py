@@ -73,8 +73,10 @@ class RaidPoll(Poll):
                _('Unsubscribe')]
     show_names = [True, False]
     
-    @staticmethod
-    def reply_markup():
+    def reply_markup(self):
+        if self.closed or self.deleted or self.finished:
+            return InlineKeyboardMarkup([])
+
         row = []
         for i in range(0, len(RaidPoll.options)):
             row.append(InlineKeyboardButton(RaidPoll.options[i], callback_data=str(i)))

@@ -28,7 +28,7 @@ class VoteCountReachedEvent:
         self.start_time = start_time
     
 class TimePoll(Poll):
-    min_votes = 3
+    min_votes = 3 if not config.test_version else 1
     max_times = 3
     
     def __init__(self, pokemon, end_time : datetime, location, creator):
@@ -37,9 +37,9 @@ class TimePoll(Poll):
         self.pokemon = pokemon
         self.location = location
               
-        self.times = {} # key: start time, value: number of votes
+        self.times = {} # key: start time, value: voters
         for time in self.calc_start_times(self.end_time):
-            self.times[time] = {} # keys: user id, values: user names
+            self.times[time] = {} # key: user id, value: user names
     
     def calc_start_times(self, end_time : datetime):
         period_minutes = 15
@@ -68,6 +68,9 @@ class TimePoll(Poll):
         return times
 
     def reply_markup(self):
+        if self.closed or self.deleted or self.finished:
+            return InlineKeyboardMarkup([])    
+
         row = []
         for time in self.times:
             row.append(InlineKeyboardButton(time, callback_data=time))
@@ -114,7 +117,7 @@ class TimePoll(Poll):
                     self.times[time][user_id] = user_name
                     changed = True
             else:
-                if user_id in self.times[time]:                
+                if user_id in self.times[time]:
                     logging.info('Removing time {} for user {} ({})'\
                         .format(time, user_name, user_id))
                     del self.times[time][user_id]
@@ -132,3 +135,9 @@ class TimePoll(Poll):
             if len(self.times[time]) >= TimePoll.min_votes:
                 times.append(time)
         return times
+        
+        return times
+        
+    def get_users(self, time): # returns a dict of users: key = id, value = name
+        return self.times[time]
+            

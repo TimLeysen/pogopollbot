@@ -119,8 +119,10 @@ def parse_poll_id_arg(bot, update, arg : str):
 def update_poll_message(bot, poll):
     chat_id = config.output_channel_id
     try:
+        logging.info('Update poll message for poll with id {}'.format(poll.id))
         bot.edit_message_text(chat_id=chat_id, message_id=poll.message_id,
-                              text=poll.message(), parse_mode='html')
+                              text=poll.message(), reply_markup=poll.reply_markup(),
+                              parse_mode='html')
     except Exception as e:
         logging.error('Failed to edit message text for poll {} with message id {}'\
                         .format(poll.id, poll.message_id))
@@ -135,7 +137,11 @@ def log_command(bot, update, command, args = None):
     else:
         chat_title = update.message.chat.title
     logging.info('{} ({}) used command \'{}\' in chat {}'.format(user.name, user.id, command, chat_title))
-        
+
+def __delete_poll_message(poll):
+    updater.bot.delete_message(chat_id = config.output_channel_id, message_id=poll.message_id)
+    del[polls[poll.id]]
+    
 """
 Bot commands
 """
@@ -755,15 +761,7 @@ def __raid_poll_vote_callback(bot, update):
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
     # seems to be the way how long polling works?
-    try:
-        query.edit_message_text(text=poll.message(),
-                                reply_markup=poll.reply_markup(),
-                                parse_mode='html')
-    except Exception as e:
-        logging.error('Failed to edit message after a vote for poll {} with message id {}'\
-                        .format(poll.id, poll.message_id))
-        logging.exception(e)
-
+    update_poll_message(bot, poll)
     bot.answer_callback_query(query.id)
 
 
@@ -785,16 +783,9 @@ def __time_poll_vote_callback(bot, update):
 
     times = poll.vote_count_reached()
     if times:
-        __close_poll(updater.bot, poll.id, reason=None, update=None, silent=True)
+        __delete_poll_message(poll)
     elif results_changed:
-        try:
-            query.edit_message_text(text=poll.message(),
-                                    reply_markup=poll.reply_markup(),
-                                    parse_mode='html')
-        except Exception as e:
-            logging.error('Failed to edit message after a vote for time poll {} with message id {}'\
-                            .format(poll.id, poll.message_id))
-            logging.exception(e)
+        update_poll_message(bot, poll)
 
     bot.answer_callback_query(query.id)
 
@@ -854,7 +845,16 @@ def HandleVoteCountReachedEvent(event):
     time = datetime.combine(d, t)
     creator = updater.bot.username
     poll = __start_poll(time_poll.pokemon, time, time_poll.location, creator)
+    
     poll.time_poll_id = time_poll.id
+
+    # Add users that voted for the chosen start time to the raid poll
+    for user_id, user_name in time_poll.get_users(event.start_time).items():
+        logging.info('Adding {} ({}) to raid poll {} ({})'.\
+            format(user_name, user_id, poll.id, poll.description()))
+        poll.add_vote(user_name, database.get_level(user_id), 0)
+        
+    update_poll_message(updater.bot, poll)
 
 zope.event.subscribers.append(HandleVoteCountReachedEvent)
         
