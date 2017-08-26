@@ -279,7 +279,9 @@ def __close_poll(bot, poll_id, reason=None, update=None, silent=False):
     else:
         msg = 'Automatically closed a poll: {}.'.format(poll.description())
     
-    if not silent:
+    if silent:
+        logging.info(msg)
+    else:
         send_message(bot, msg)
 
     
@@ -781,7 +783,10 @@ def __time_poll_vote_callback(bot, update):
     logging.info('{} voted {} on time poll {} with message id {}'\
         .format(user.name, time, poll.id, poll.message_id))
 
-    if results_changed:
+    times = poll.vote_count_reached()
+    if times:
+        __close_poll(updater.bot, poll.id, reason=None, update=None, silent=True)
+    elif results_changed:
         try:
             query.edit_message_text(text=poll.message(),
                                     reply_markup=poll.reply_markup(),
@@ -850,9 +855,6 @@ def HandleVoteCountReachedEvent(event):
     creator = updater.bot.username
     poll = __start_poll(time_poll.pokemon, time, time_poll.location, creator)
     poll.time_poll_id = time_poll.id
-    
-    # Only allow 1 automatic poll for now
-    __close_poll(updater.bot, time_poll.id, reason=None, update=None, silent=True)
 
 zope.event.subscribers.append(HandleVoteCountReachedEvent)
         

@@ -28,7 +28,7 @@ class VoteCountReachedEvent:
         self.start_time = start_time
     
 class TimePoll(Poll):
-    min_votes = 3
+    min_votes = 1
     max_times = 3
     
     def __init__(self, pokemon, end_time : datetime, location, creator):
@@ -124,4 +124,11 @@ class TimePoll(Poll):
             logging.debug('posting VoteCountReachedEvent({}, {})'.format(self.id, user_time))
             zope.event.notify(VoteCountReachedEvent(self.id, user_time))
 
-        return changed    
+        return changed
+        
+    def vote_count_reached(self):
+        times = []
+        for time in self.times:
+            if len(self.times[time]) >= TimePoll.min_votes:
+                times.append(time)
+        return times
