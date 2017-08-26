@@ -837,7 +837,8 @@ def HandleVoteCountReachedEvent(event):
     # create a new poll if one doesn't exist yet
     for poll in polls:
         if type(poll) is RaidPoll:
-            if poll.time_poll_id == event.poll_id and poll.end_time == event.start_time:
+            # Only allow 1 automatic poll for now
+            if poll.time_poll_id == event.poll_id:# and poll.end_time == event.start_time:
                 logging.info('HandleVoteCountReachedEvent: a poll has already been created for {}'\
                             .format(poll.description()))
                 return
@@ -849,6 +850,9 @@ def HandleVoteCountReachedEvent(event):
     creator = updater.bot.username
     poll = __start_poll(time_poll.pokemon, time, time_poll.location, creator)
     poll.time_poll_id = time_poll.id
+    
+    # Only allow 1 automatic poll for now
+    __close_poll(updater.bot, polls, time_poll.id, reason=None, update=None, silent=True)
 
 zope.event.subscribers.append(HandleVoteCountReachedEvent)
         
