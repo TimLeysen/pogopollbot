@@ -32,7 +32,7 @@ from timepoll import TimePoll, VoteCountReachedEvent
 
 
 
-updater = Updater(config.bot_token)
+updater = Updater(config.bot_token, workers=32)
 dispatcher = updater.dispatcher
 
 # key: Poll.id, value: Poll
