@@ -28,7 +28,7 @@ class VoteCountReachedEvent:
         self.start_time = start_time
     
 class TimePoll(Poll):
-    min_votes = 1
+    min_votes = 3
     max_times = 3
     
     def __init__(self, pokemon, end_time : datetime, location, creator):
