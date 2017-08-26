@@ -75,10 +75,10 @@ class RaidPoll(Poll):
     
     @staticmethod
     def reply_markup():
-        menu = []
+        row = []
         for i in range(0, len(RaidPoll.options)):
-            menu.append([InlineKeyboardButton(RaidPoll.options[i], callback_data=str(i))])
-        return InlineKeyboardMarkup(menu)
+            row.append(InlineKeyboardButton(RaidPoll.options[i], callback_data=str(i)))
+        return InlineKeyboardMarkup([row])
 
     def __init__(self, pokemon, time : datetime, location, creator):
         super().__init__(time, creator)
