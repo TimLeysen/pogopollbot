@@ -17,5 +17,5 @@ if __name__ == '__main__':
         end_times.append(time)
     
     for time in end_times:
-        end_times = poll.calc_start_times(time)
-        print('{} {} => {}'.format(to_string(datetime.now()), to_string(time), end_times))
+        start_times = poll.calc_start_times(time)
+        print('{} {} => {}'.format(to_string(datetime.now()), to_string(time), start_times))
