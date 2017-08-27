@@ -33,6 +33,7 @@ from timepoll import TimePoll, VoteCountReachedEvent
 
 
 updater = Updater(config.bot_token, workers=32)
+bot = updater.bot
 dispatcher = updater.dispatcher
 
 # key: Poll.id, value: Poll
@@ -49,25 +50,25 @@ Helper functions
 
 # Sends a message to both the main and the bot chat
 # Messages: created/closed/deleted a poll
-def send_message(bot, msg):
+def send_message(msg):
     logging.info('send message: {}'.format(msg))
     bot.send_message(chat_id=config.bot_chat_id, text=msg, disable_web_page_preview=True)
     bot.send_message(chat_id=config.main_chat_id, text=msg, disable_web_page_preview=True)
 
 # Sends a message to the bot chat
 # Normally we would use send_command_message but __start_poll e.g. can't do this cause it has no update object
-def send_bot_chat_message(bot, msg):
+def send_bot_chat_message(msg):
     logging.info('send bot chat message: {}'.format(msg))
     bot.send_message(chat_id=config.bot_chat_id, text=msg, disable_web_page_preview=True)
 
 # Send a message to the channel where a user used a command
 # This is mainly for giving information when using a command wrong.
-def send_command_message(bot, update, msg):
+def send_command_message(update, msg):
     logging.info('send command message: {}'.format(msg))
     bot.send_message(chat_id=update.message.chat_id, text=msg, disable_web_page_preview=True)
 
 # Test if a user is allowed to send commands to the bot
-def authorized(bot, update):
+def authorized(update):
     if update.message.chat_id != config.bot_chat_id:
         logging.warning('Unauthorized access from {} (wrong chat)'\
             .format(update.message.from_user.name))
@@ -75,12 +76,12 @@ def authorized(bot, update):
         return False
     return True
 
-def private_chat(bot, update):
+def private_chat(update):
     return update.message.chat.type == Chat.PRIVATE
     
 # Test if a user is authorized and an admin
-def admin(bot, update, print_warning=True):
-    if not authorized(bot, update):
+def admin(update, print_warning=True):
+    if not authorized(update):
         return
 
     chat_id = config.bot_chat_id
@@ -96,7 +97,7 @@ def admin(bot, update, print_warning=True):
 
     if print_warning:
         msg = 'Only admins can use that command.'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         
     user_name = update.message.from_user.name
     logging.warning('Unauthorized access from {} (not an admin)'.format(user_name))
@@ -111,15 +112,15 @@ def get_poll(chat_id, msg_id):
             return poll
     raise ValueError('Poll with message_id {} in chat with id {} does not exist!'.format(msg_id, chat_id))
 
-def parse_poll_id_arg(bot, update, arg : str):
+def parse_poll_id_arg(update, arg : str):
     id = arg.lstrip('#')
     if not id.isdigit() or not poll_exists(int(id)):
         msg = 'Unknown poll id. Type /list to see all poll ids'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError('Incorrect format: unknown poll id')
     return int(id)
 
-def update_poll_message(bot, poll):
+def update_poll_message(poll):
     chat_id = config.raids_channel_id
     try:
         logging.info('Update poll message for poll with id {}'.format(poll.id))
@@ -131,7 +132,7 @@ def update_poll_message(bot, poll):
                         .format(poll.id, poll.message_id))
         logging.exception(e)
 
-def log_command(bot, update, command, args = None):
+def log_command(update, command, args = None):
     msg = update.message
     user = msg.from_user
     command = '{} {}'.format(command, ', '.join(args) if args is not None else '')
@@ -142,23 +143,23 @@ def log_command(bot, update, command, args = None):
     logging.info('{} ({}) used command \'{}\' in chat {}'.format(user.name, user.id, command, chat_title))
 
 def __delete_poll_message(poll):
-    updater.bot.delete_message(chat_id = config.raids_channel_id, message_id=poll.message_id)
+    bot.delete_message(chat_id = config.raids_channel_id, message_id=poll.message_id)
     del[polls[poll.id]]
     
 """
 Bot commands
 """
     
-def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_time : str, location : str
+def parse_args_start_poll(update, args): # returns raid boss : str, start_time : str, location : str
     if len(args) < 3:
         msg = 'Incorrect format. Usage: /start <raid-boss> <start-time> <location>. For example: /start Moltres 13:00 Park Sint-Niklaas'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError('Incorrect format: expected three arguments: raid boss, start time, location')
 
     pokemon = args[0].capitalize() # TODO: Ho-Oh
     if not pokedex.name_exists(pokemon):
         msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError('Passed argument is not a Pokemon')
 
     # not needed and would require code changes when raid bosses change
@@ -173,7 +174,7 @@ def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_t
         start_time = datetime.combine(d, t)
     except:
         msg = 'Incorrect time format. Expected HH:MM. For example: 13:00'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError('Incorrect time format. Expected HH:MM.')
 
     location = ' '.join(args[2:])
@@ -182,12 +183,12 @@ def parse_args_start_poll(bot, update, args): # returns raid boss : str, start_t
 
 
 def start_poll(bot, update, args):
-    log_command(bot, update, start_poll.__name__, args)
-    if not authorized(bot, update):
+    log_command(update, start_poll.__name__, args)
+    if not authorized(update):
         return
 
     try:
-        pokemon, start_time, location = parse_args_start_poll(bot, update, args)
+        pokemon, start_time, location = parse_args_start_poll(update, args)
     except ValueError as e:
         logging.info(e)
         return
@@ -196,29 +197,28 @@ def start_poll(bot, update, args):
     __start_poll(pokemon, start_time, location, creator)
 
 def __start_poll(pokemon, start_time, location, creator):
-    bot = updater.bot
     poll = RaidPoll(pokemon, start_time, location, creator)
 
     try:
         __post_poll(poll)
     except:
         msg = 'Error posting poll {}'.format(poll.description())
-        send_bot_chat_message(bot, msg)
+        send_bot_chat_message(msg)
         return
     
     msg = '{} created a poll: {}.\n'.format(creator, poll.description())
     msg += 'You can subscribe in {}'.format(config.raids_channel_id)
-    send_message(bot, msg)
+    send_message(msg)
 
-    dispatcher.run_async(close_poll_on_timer, *(bot, poll.id, False))
-    dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
+    dispatcher.run_async(close_poll_on_timer, *(poll.id, False))
+    dispatcher.run_async(delete_poll_on_timer, *(poll.id, ))
     
-    # dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
+    # dispatcher.run_async(eastereggs.check_poll_count, *(poll.global_id))
     
     return poll
 
     
-def close_poll_on_timer(bot, poll_id, silent=False):
+def close_poll_on_timer(poll_id, silent=False):
     poll = polls[poll_id]
     
     if poll.end_time > datetime.now():
@@ -229,36 +229,36 @@ def close_poll_on_timer(bot, poll_id, silent=False):
         logging.warning('close_poll_on_timer: poll end time is earlier than now. '\
                         'Closing poll anyway. {}'.format(poll.description()))
 
-    __close_poll(bot, poll_id, reason=_('time expired'), update=None, silent=silent)
+    __close_poll(poll_id, reason=_('time expired'), update=None, silent=silent)
 
-def parse_args_close_poll(bot, update, args):
+def parse_args_close_poll(update, args):
     if len(args) < 1:
         msg = 'Incorrect format. Usage: /close <id> (<reason>). For example: /close 0, /close 0 Duplicate poll'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError('Incorrect format: expected at least 1 argument')
 
-    id = parse_poll_id_arg(bot, update, args[0])
+    id = parse_poll_id_arg(update, args[0])
     reason = ' '.join(args[1:]) if len(args) > 1 else None
     
     return id, reason
     
 def close_poll(bot, update, args):
-    log_command(bot, update, close_poll.__name__, args)
-    if not authorized(bot, update):
+    log_command(update, close_poll.__name__, args)
+    if not authorized(update):
         return
 
     try:
-        poll_id, reason = parse_args_close_poll(bot, update, args)
+        poll_id, reason = parse_args_close_poll(update, args)
     except ValueError as e:
         logging.info(e)
         return
 
-    __close_poll(bot, poll_id, reason, update, silent=False)
+    __close_poll(poll_id, reason, update, silent=False)
     
     return
 
 # TODO: id exists is checked in close_poll (user command) but also here...
-def __close_poll(bot, poll_id, reason=None, update=None, silent=False):
+def __close_poll(poll_id, reason=None, update=None, silent=False):
     if not poll_exists(poll_id):
         logging.info('Poll does not exist anymore')
         return
@@ -267,13 +267,13 @@ def __close_poll(bot, poll_id, reason=None, update=None, silent=False):
     if poll.closed:
         msg = 'Poll {} is already closed'.format(poll.id)
         if update:
-            send_command_message(bot, update, msg)
+            send_command_message(update, msg)
         else:
             logging.info(msg)
         return
     
     poll.set_closed(reason)
-    update_poll_message(bot, poll)
+    update_poll_message(poll)
 
     if update:
         msg = '{} closed a poll: {}.'.format(update.message.from_user.name, poll.description())
@@ -285,12 +285,12 @@ def __close_poll(bot, poll_id, reason=None, update=None, silent=False):
     if silent:
         logging.info(msg)
     else:
-        send_message(bot, msg)
+        send_message(msg)
 
     
 def delete_all_polls(bot, update):
-    log_command(bot, update, delete_all_polls.__name__)
-    if not admin(bot, update):
+    log_command(update, delete_all_polls.__name__)
+    if not admin(update):
         return
     
     chat_id = config.raids_channel_id
@@ -303,10 +303,10 @@ def delete_all_polls(bot, update):
     polls.clear()
 
     msg = '{} deleted all polls.'.format(update.message.from_user.name)
-    send_message(bot, msg)
+    send_message(msg)
 
 
-def delete_poll_on_timer(bot, poll_id):
+def delete_poll_on_timer(poll_id):
     poll = polls[poll_id]
     delta = timedelta(hours=1)
     if (poll.end_time + delta) > datetime.now():
@@ -316,29 +316,29 @@ def delete_poll_on_timer(bot, poll_id):
         logging.warning('delete_poll_on_timer: poll end time is earlier than now. '\
                         'Deleting poll anyway. {}'.format(poll.description()))
 
-    __delete_poll(bot, poll_id)
+    __delete_poll(poll_id)
 
 
 # TODO: almost the same code as close_poll    
-def parse_args_delete_poll(bot, update, args):
+def parse_args_delete_poll(update, args):
     if len(args) < 1:
         msg = 'Incorrect format. Usage: /delete <id> (<reason>). For example: /delete 0, /delete 0 Duplicate poll'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError('Incorrect format: expected at least 1 argument')
 
-    id = parse_poll_id_arg(bot, update, args[0])
+    id = parse_poll_id_arg(update, args[0])
     reason = ' '.join(args[1:]) if len(args) > 1 else None
     
     return id, reason
     
     
 def delete_poll(bot, update, args):
-    log_command(bot, update, delete_poll.__name__, args)
-    if not authorized(bot, update):
+    log_command(update, delete_poll.__name__, args)
+    if not authorized(update):
         return
 
     try:
-        poll_id, reason = parse_args_delete_poll(bot, update, args)
+        poll_id, reason = parse_args_delete_poll(update, args)
     except ValueError as e:
         logging.info(e)
         return
@@ -347,15 +347,15 @@ def delete_poll(bot, update, args):
     poll = polls[poll_id]
     user_name = update.message.from_user.name
     own_poll = user_name == poll.creator
-    if not own_poll and not admin(bot, update, print_warning=False):
+    if not own_poll and not admin(update, print_warning=False):
         msg = '{}, you cannot delete polls that you did not create yourself'.format(user_name)
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         return
 
-    __delete_poll(bot, poll_id, reason, update)
+    __delete_poll(poll_id, reason, update)
 
 
-def __delete_poll(bot, poll_id, reason=None, update=None):
+def __delete_poll(poll_id, reason=None, update=None):
     if not poll_exists(poll_id):
         logging.info('Poll {} has already been deleted'.info(poll_id))
         return
@@ -364,14 +364,14 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
     poll.set_deleted(reason)
     if update is None: # automatically deleted
         poll.set_finished()
-    update_poll_message(bot, poll)
+    update_poll_message(poll)
     
     description = poll.description()
     if update is not None:
         msg = '{} deleted a poll: {}.'.format(update.message.from_user.name, description)
         if reason is not None:
             msg += ' Reason: {}.'.format(reason)
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
     else:
         msg = 'Automatically deleted a poll: {}.'.format(description)
         # don't print useless information to main chat!
@@ -381,8 +381,8 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
     del polls[poll_id]
 
 def list_polls(bot, update):
-    log_command(bot, update, list_polls.__name__)
-    if not authorized(bot, update):
+    log_command(update, list_polls.__name__)
+    if not authorized(update):
         return
 
     msg = ''
@@ -392,13 +392,13 @@ def list_polls(bot, update):
     if not msg:
         msg = 'No polls found'
 
-    send_command_message(bot, update, msg)
+    send_command_message(update, msg)
 
-def __verify_pokemon(bot, update, pokemon_list):
+def __verify_pokemon(update, pokemon_list):
     for pokemon in pokemon_list:
         if not pokedex.name_exists(pokemon):
             msg = '{} is not a Pokemon! Check your spelling!'.format(pokemon)
-            send_command_message(bot, update, msg)
+            send_command_message(update, msg)
             return False
     return True
     
@@ -406,11 +406,11 @@ def __print_bosses():
     return ', '.join(allowed_bosses_to_report)    
     
 def set_bosses(bot, update, args):
-    log_command(bot, update, set_bosses.__name__)
-    if not authorized(bot, update):
+    log_command(update, set_bosses.__name__)
+    if not authorized(update):
         return
     
-    if not __verify_pokemon(bot, update, args):
+    if not __verify_pokemon(update, args):
         return
 
     bosses = sorted(list(set([pokedex.capwords(x) for x in args])))
@@ -419,14 +419,14 @@ def set_bosses(bot, update, args):
     
     msg = 'Users can now report the following raid bosses: {}'\
             .format(__print_bosses())
-    send_command_message(bot, update, msg)
+    send_command_message(update, msg)
 
 def add_bosses(bot, update, args):
-    log_command(bot, update, add_bosses.__name__)
-    if not authorized(bot, update):
+    log_command(update, add_bosses.__name__)
+    if not authorized(update):
         return
 
-    if not __verify_pokemon(bot, update, args):
+    if not __verify_pokemon(update, args):
         return
 
     new_bosses = sorted(list(set([pokedex.capwords(x) for x in args])))
@@ -436,14 +436,14 @@ def add_bosses(bot, update, args):
     
     msg = 'Users can now report the following raid bosses: {}'\
             .format(__print_bosses())
-    send_command_message(bot, update, msg)
+    send_command_message(update, msg)
 
 def rem_bosses(bot, update, args):
-    log_command(bot, update, rem_bosses.__name__)
-    if not authorized(bot, update):
+    log_command(update, rem_bosses.__name__)
+    if not authorized(update):
         return
 
-    if not __verify_pokemon(bot, update, args):
+    if not __verify_pokemon(update, args):
         return
 
     new_bosses = sorted(list(set([pokedex.capwords(x) for x in args])))
@@ -453,19 +453,19 @@ def rem_bosses(bot, update, args):
 
     msg = 'Users can now report the following raid bosses: {}'\
             .format(__print_bosses())
-    send_command_message(bot, update, msg)
+    send_command_message(update, msg)
     
 def list_bosses(bot, update, args):
-    log_command(bot, update, list_bosses.__name__)
-    if not authorized(bot, update):
+    log_command(update, list_bosses.__name__)
+    if not authorized(update):
         return
 
     msg = 'Users can report the following raid bosses: {}'\
             .format(__print_bosses())
-    send_command_message(bot, update, msg)
+    send_command_message(update, msg)
     
 def help(bot, update):
-    log_command(bot, update, help.__name__)
+    log_command(update, help.__name__)
     is_input_chat = update.message.chat_id == config.bot_chat_id
     if not (private_chat(bot,update) or is_input_chat):
         return
@@ -500,34 +500,34 @@ def help(bot, update):
           \
           '/deleteall\n'\
           'Deletes all polls. Only usable by admins.'
-    send_command_message(bot, update, msg)
+    send_command_message(update, msg)
 
 """
 USER COMMANDS (CHAT)
 """
-def __parse_args_report_raid(bot, update, args): # returns raid boss : str, timer : str, location : str
+def __parse_args_report_raid(update, args): # returns raid boss : str, timer : str, location : str
     if len(args) < 3:
         msg = 'Incorrect format. Usage: /raid <raid-boss> <raid-timer> <location>. '\
               'For example: /raid Moltres 1:45 Park Sint-Niklaas'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError('Incorrect format: expected three arguments: raid boss, raid timer, location')
 
     pokemon = args[0].capitalize() # TODO: Ho-Oh
     if not pokedex.name_exists(pokemon):
         msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError('Passed argument is not a Pokemon')
 
     # Unnecessary and raid bosses might change over time
     # if not pokedex.is_raid_boss(pokemon):
         # msg = '{} is not a raid boss!'.format(pokemon)
-        # send_command_message(bot, update, msg)
+        # send_command_message(update, msg)
         # raise ValueError('Pokemon is not a raid boss')
     
     # Disabled so people won't complain
     # if not pokemon in allowed_bosses_to_report:
         # msg = 'Reporting {} is not allowed'.format(pokemon)
-        # send_command_message(bot, update, msg)
+        # send_command_message(update, msg)
         # raise ValueError('Pokemon is not a raid boss or too low level')
 
     timer = args[1]
@@ -536,12 +536,12 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
         timer = timedelta(hours=t.hour, minutes=t.minute)
     except:
         msg = 'Incorrect timer format. Expected HH:MM. For example: 1:45.'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError('Incorrect time format. Expected HH:MM.')
 
     if timer.total_seconds() > 7200:
         msg = 'Raid timer should be less than 2:00.'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         raise ValueError(msg)
         
     end_time = datetime.now() + timer
@@ -551,7 +551,7 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
 
 def __post_poll(poll):
     try:
-        msg = updater.bot.send_message(chat_id=poll.chat_id,
+        msg = bot.send_message(chat_id=poll.chat_id,
                                        text=poll.message(),
                                        reply_markup=poll.reply_markup(),
                                        parse_mode='html')
@@ -564,15 +564,15 @@ def __post_poll(poll):
         raise e
     
 def report_raid(bot, update, args):
-    log_command(bot, update, report_raid.__name__, args)
-    # if update.message.chat_id != config.main_chat_id and not authorized(bot, update):
+    log_command(update, report_raid.__name__, args)
+    # if update.message.chat_id != config.main_chat_id and not authorized(update):
         # return
     # TEMPORARILY FOR TESTING/ROLLOUT
-    if not authorized(bot, update):
+    if not authorized(update):
         return
 
     try:
-        pokemon, end_time, location = __parse_args_report_raid(bot, update, args)
+        pokemon, end_time, location = __parse_args_report_raid(update, args)
     except ValueError as e:
         logging.info(e)
         return
@@ -581,22 +581,22 @@ def report_raid(bot, update, args):
     poll = TimePoll(pokemon, end_time, location, creator)
     if not poll.times:
         msg = 'Unable to choose proper start times. Please create a poll manually!'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         return
 
     try:
         __post_poll(poll)
     except:
         msg = 'Error posting poll {}'.format(poll.description())
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         return
     
     msg = '{} reported a raid: {}\n'.format(creator, poll.description())
     msg += 'You can vote for a start time in {}'.format(config.raids_channel_id)
-    send_message(bot, msg)
+    send_message(msg)
     
-    dispatcher.run_async(close_poll_on_timer, *(bot, poll.id, True))
-    dispatcher.run_async(delete_poll_on_timer, *(bot, poll.id))
+    dispatcher.run_async(close_poll_on_timer, *(poll.id, True))
+    dispatcher.run_async(delete_poll_on_timer, *(poll.id, ))
     
     # dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
 
@@ -606,14 +606,14 @@ USER COMMANDS (PM)
 """
 
 def set_level(bot, update, args):
-    log_command(bot, update, set_level.__name__, args)
+    log_command(update, set_level.__name__, args)
     
-    if not private_chat(bot, update):
+    if not private_chat(update):
         return
 
     if len(args) != 1:
         msg = 'Wrong format. Usage: /setlevel level. Example: /setlevel 30'
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         return
     
     user = update.message.from_user
@@ -623,31 +623,31 @@ def set_level(bot, update, args):
         level = int(level)
     except:
         msg = '{}, your level should be a number!'.format(user.name)
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         return
         
     if level not in range(1,41):
         msg = 'Please don\'t try to fool me {}. I\'m a smart Bulbasaur!'.format(user.name)
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
         return
     
     database.set_level(user.id, user.name, level)
     msg = '{}, your level is now {}'.format(user.name, level)    
-    send_command_message(bot, update, msg)
+    send_command_message(update, msg)
 
 """
 ADMIN COMMANDS
 """
     
 def chat_id(bot, update):
-    log_command(bot, update, 'chat_id')
+    log_command(update, 'chat_id')
     chat_id = update.message.chat_id
     msg = 'This chat\'s id is {}'.format(chat_id)
-    send_command_message(bot, update, msg)
+    send_command_message(update, msg)
 
 def test(bot, update):
-    log_command(bot, update, test.__name__)
-    # if not admin(bot, update):
+    log_command(update, test.__name__)
+    # if not admin(update):
     if not config.test_version:
         return
 
@@ -664,14 +664,14 @@ def test(bot, update):
 
 data_file = 'data.pickle'
 def save_state(bot, update):
-    log_command(bot, update, save_state.__name__)
-    if not admin(bot, update):
+    log_command(update, save_state.__name__)
+    if not admin(update):
         return
 
     if __save_state():
-        send_command_message(bot, update, 'Saved state to file')
+        send_command_message(update, 'Saved state to file')
     else:
-        send_command_message(bot, update, 'Failed to save state to file')
+        send_command_message(update, 'Failed to save state to file')
 
 def __save_state():
     try:
@@ -687,8 +687,8 @@ def __save_state():
         return False
         
 def load_state(bot, update):
-    log_command(bot, update, load_state.__name__)
-    if not admin(bot, update):
+    log_command(update, load_state.__name__)
+    if not admin(update):
         return
 
     __load_state()
@@ -709,12 +709,12 @@ def __load_state():
         return False
 
 def quit(bot, update):
-    log_command(bot, update, quit.__name__)
-    if not admin(bot, update):
+    log_command(update, quit.__name__)
+    if not admin(update):
         return
     
     save_state(bot, update)
-    send_command_message(bot, update, 'Shutting down...')
+    send_command_message(update, 'Shutting down...')
     os._exit(0)
 
     
@@ -724,11 +724,11 @@ UNKNOWN COMMANDS
 """
 def unknown_command(bot, update):
     # setlevel command will be done in pm
-    if not authorized(bot, update) and not private_chat(bot,update):
+    if not authorized(update) and not private_chat(bot,update):
         return
 
     msg = "Sorry, that command is unown to me."
-    send_command_message(bot, update, msg)    
+    send_command_message(update, msg)    
 
     
 
@@ -742,13 +742,13 @@ def vote_callback(bot, update):
     
     poll = get_poll(chat_id, msg_id)
     if type(poll) is RaidPoll:
-        return __raid_poll_vote_callback(bot, update, poll)
+        return __raid_poll_vote_callback(update, poll)
     
     if type(poll) is TimePoll:
-        return __time_poll_vote_callback(bot, update, poll)
+        return __time_poll_vote_callback(update, poll)
 
         
-def __raid_poll_vote_callback(bot, update, poll):
+def __raid_poll_vote_callback(update, poll):
     query = update.callback_query
     user = query.from_user
     level = database.get_level(query.from_user.id)
@@ -765,12 +765,12 @@ def __raid_poll_vote_callback(bot, update, poll):
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
     # seems to be the way how long polling works?
-    update_poll_message(bot, poll)
+    update_poll_message(poll)
 
     bot.answer_callback_query(query.id)
 
 
-def __time_poll_vote_callback(bot, update, poll):
+def __time_poll_vote_callback(update, poll):
     query = update.callback_query
     user = query.from_user
     time = query.data
@@ -788,7 +788,7 @@ def __time_poll_vote_callback(bot, update, poll):
     if times:
         __delete_poll_message(poll)
     elif results_changed:
-        update_poll_message(bot, poll)
+        update_poll_message(poll)
 
     bot.answer_callback_query(query.id)
 
@@ -805,7 +805,7 @@ def member_joined(bot, update):
                 'Please discuss a proper starting time in the main chat before creating a new poll!\n'
                 'Type /help for more information.'
                 ).format(','.join(names))
-        send_command_message(bot, update, msg)
+        send_command_message(update, msg)
     
 def error_callback(bot, update, error):
     try:
@@ -846,7 +846,7 @@ def HandleVoteCountReachedEvent(event):
     d = datetime.now().date()
     t = datetime.strptime(event.start_time, '%H:%M').time()
     time = datetime.combine(d, t)
-    creator = updater.bot.username
+    creator = bot.username
     poll = __start_poll(time_poll.pokemon, time, time_poll.location, creator)
     
     poll.time_poll_id = time_poll.id
@@ -857,7 +857,7 @@ def HandleVoteCountReachedEvent(event):
             format(user_name, user_id, poll.id, poll.description()))
         poll.add_vote(user_id, user_name, database.get_level(user_id), 0)
         
-    update_poll_message(updater.bot, poll)
+    update_poll_message(poll)
 
 zope.event.subscribers.append(HandleVoteCountReachedEvent)
         
@@ -911,7 +911,7 @@ dispatcher.add_error_handler(error_callback)
 __load_state()
 updater.start_polling()
 logging.info('Ready to work!')
-updater.bot.send_message(chat_id=config.bot_chat_id, text='Ready to work!')
+bot.send_message(chat_id=config.bot_chat_id, text='Ready to work!')
 updater.idle()
 logging.error('after updater.idle()')
 __save_state()
