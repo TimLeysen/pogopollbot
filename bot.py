@@ -117,7 +117,7 @@ def parse_poll_id_arg(bot, update, arg : str):
     return int(id)
 
 def update_poll_message(bot, poll):
-    chat_id = config.output_channel_id
+    chat_id = config.polls_channel_id
     try:
         logging.info('Update poll message for poll with id {}'.format(poll.id))
         bot.edit_message_text(chat_id=chat_id, message_id=poll.message_id,
@@ -139,7 +139,7 @@ def log_command(bot, update, command, args = None):
     logging.info('{} ({}) used command \'{}\' in chat {}'.format(user.name, user.id, command, chat_title))
 
 def __delete_poll_message(poll):
-    updater.bot.delete_message(chat_id = config.output_channel_id, message_id=poll.message_id)
+    updater.bot.delete_message(chat_id = config.polls_channel_id, message_id=poll.message_id)
     del[polls[poll.id]]
     
 """
@@ -197,7 +197,7 @@ def __start_poll(pokemon, start_time, location, creator):
     poll = RaidPoll(pokemon, start_time, location, creator)
 
     try:
-        msg = bot.send_message(chat_id=config.output_channel_id,
+        msg = bot.send_message(chat_id=config.polls_channel_id,
                                text=poll.message(),
                                reply_markup=poll.reply_markup(),
                                parse_mode='html')
@@ -210,7 +210,7 @@ def __start_poll(pokemon, start_time, location, creator):
     polls[poll.id] = poll
     
     msg = '{} created a poll: {}.\n'.format(creator, poll.description())
-    msg += 'You can subscribe in {}'.format(config.output_channel_id)
+    msg += 'You can subscribe in {}'.format(config.polls_channel_id)
     send_message(bot, msg)
 
     dispatcher.run_async(close_poll_on_timer, *(bot, poll.id, False))
@@ -296,7 +296,7 @@ def delete_all_polls(bot, update):
     if not admin(bot, update):
         return
     
-    chat_id = config.output_channel_id
+    chat_id = config.polls_channel_id
     for poll in polls.values():
         try:
             bot.delete_message(chat_id=chat_id, message_id=poll.message_id)
@@ -575,7 +575,7 @@ def report_raid(bot, update, args):
         return
 
     try:
-        msg = bot.send_message(chat_id=config.output_channel_id,
+        msg = bot.send_message(chat_id=config.polls_channel_id,
                                text=poll.message(),
                                reply_markup=poll.reply_markup(),
                                parse_mode='html')
@@ -588,7 +588,7 @@ def report_raid(bot, update, args):
     polls[poll.id] = poll
     
     msg = '{} reported a raid: {}\n'.format(creator, poll.description())
-    msg += 'You can vote for a start time in {}'.format(config.output_channel_id)
+    msg += 'You can vote for a start time in {}'.format(config.polls_channel_id)
     send_message(bot, msg)
     
     dispatcher.run_async(close_poll_on_timer, *(bot, poll.id, True))
