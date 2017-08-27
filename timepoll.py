@@ -6,7 +6,7 @@ import re
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import zope.event
 
-from common import from_string, to_string
+from common import from_string, to_string, to_time_string
 import config
 import pokedex
 from poll import Poll
@@ -51,7 +51,7 @@ class TimePoll(Poll):
             t += period_delta
             if t - start_time >= min_start_delta:
                 if end_time - t >= min_end_delta:
-                    times.append(to_string(t))
+                    times.append(to_time_string(t))
                 else:
                     break
         
@@ -71,7 +71,7 @@ class TimePoll(Poll):
 
     def message(self):
         msg = ''
-        msg += '<b>{}</b> (tot {})'.format(self.pokemon, to_string(self.end_time))
+        msg += '<b>{}</b> (tot {})'.format(self.pokemon, self.time_string())
         msg += super().description_suffix()
         msg += '\n'
         msg += '{}'.format(self.location)

@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from datetime import datetime
 import itertools
 
-from common import from_string, to_string
+from common import from_string, to_string, to_time_string
 import config
 import pokedex
 
@@ -33,7 +33,7 @@ class Poll(metaclass=ABCMeta):
         self.finished = False
 
 
-        if pokedex.is_exclusive_raid_boss(self.pokemon):
+        if self.is_exclusive():
             self.channel_name = config.exclusive_raids_channel_id
         else:
             self.channel_name = config.raids_channel_id
@@ -44,8 +44,7 @@ class Poll(metaclass=ABCMeta):
         return str(self.id).zfill(3)
     
     def description(self):
-        desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon,
-            to_string(self.end_time), self.location)
+        desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon, self.time_string(), self.location)
         desc += self.description_suffix()
         return desc
 
@@ -62,6 +61,11 @@ class Poll(metaclass=ABCMeta):
             suffix += ' [{}]'.format(_('CLOSED'))
         return suffix
 
+    def time_string(self):
+        if self.is_exclusive():
+            return to_string(self.end_time)
+        return to_time_string(self.end_time)
+        
     def set_closed(self, reason = None):
         self.closed = True
         self.closed_reason = reason
@@ -72,6 +76,9 @@ class Poll(metaclass=ABCMeta):
         
     def set_finished(self):
         self.finished = True
+
+    def is_exclusive(self):
+        return pokedex.is_exclusive_raid_boss(self.pokemon)
 
     @abstractmethod    
     def reply_markup(self):

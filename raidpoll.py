@@ -3,7 +3,7 @@ import itertools
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
-from common import from_string, to_string
+from common import from_string, to_string, to_time_string
 import config
 import pokedex
 from poll import Poll
@@ -90,7 +90,7 @@ class RaidPoll(Poll):
         # disabled: image is too big on phones and we can't change the preview size
         # msg = '<a href=\"{}\">&#8205;</a>\n'.format(self.img_url)
         msg = ''
-        msg += '<b>{} {}</b>'.format(self.pokemon, to_string(self.end_time))
+        msg += '<b>{} {}</b>'.format(self.pokemon, self.time_string())
         msg += super().description_suffix()
         msg += '\n'
         msg += '{}'.format(self.location)

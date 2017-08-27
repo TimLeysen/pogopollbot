@@ -1,13 +1,8 @@
 from datetime import datetime, timedelta
 import random
 
+from common import from_string, to_string, to_time_string
 from timepoll import TimePoll
-
-def from_string(t : str):
-    return datetime.strptime(t, '%H:%M')
-
-def to_string(t : datetime):
-    return datetime.strftime(t, '%H:%M')
 
 if __name__ == '__main__':
     poll = TimePoll('rhydon', datetime.now(), 'TEST', 'some guy')
@@ -18,4 +13,4 @@ if __name__ == '__main__':
     
     for time in end_times:
         start_times = poll.calc_start_times(time)
-        print('{} {} => {}'.format(to_string(datetime.now()), to_string(time), start_times))
+        print('{} {} => {}'.format(to_time_string(datetime.now()), to_time_string(time), start_times))
