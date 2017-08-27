@@ -802,7 +802,7 @@ def __raid_poll_vote_callback(update, poll):
     choice = int(query.data)
     
     try:
-        poll.add_vote(user.id, user.name, level, choice)
+        changed = poll.add_vote(user.id, user.name, level, choice)
     except KeyError as e:
         logging.info('User tried to vote for an old poll that is still open')
         return
@@ -812,7 +812,8 @@ def __raid_poll_vote_callback(update, poll):
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
     # seems to be the way how long polling works?
-    update_poll_message(poll)
+    if changed:
+        update_poll_message(poll)
 
     bot.answer_callback_query(query.id)
 

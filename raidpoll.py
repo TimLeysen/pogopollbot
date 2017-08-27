@@ -50,6 +50,9 @@ class Voters:
             count += voter.count
         return count
     
+    def exists(self, id):
+        return self.__index_of(id) > -1
+
     def __index_of(self, id):
         i = 0
         for voter in self.voters:
@@ -128,13 +131,19 @@ class RaidPoll(Poll):
         return msg
 
     def add_vote(self, id, name, level, choice):
+        changed = False
+
         # clunky but whatever
         if choice is 0: # I can come
             # Multiple votes will increase a voter's player count
             self.all_voters[0].add(id, name, level)
+            changed = True
         
         if choice is 1: # I can't come (anymore)
             # don't care about these users so don't store anything
-            self.all_voters[0].remove(id)
+            if self.all_voters[0].exists(id):
+                self.all_voters[0].remove(id)
+                changed = True
             
         self.all_voters[0].sort_by_level()
+        return changed
