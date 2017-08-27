@@ -43,13 +43,13 @@ raid_bosses = {
     "zapdos": ["rock", "ice"],
     "articuno": ["rockx2", "steel", "fire", "electric"],
     "mewtwo": ["bug", "dark", "ghost"],
-    # "mew": ["bug", "dark", "ghost"],
+    "mew": ["bug", "dark", "ghost"],
 
-    # "raikou": ["ground"],
-    # "entei": ["ground", "rock", "water"],
-    # "suicine": ["grass", "electric"],
+    "raikou": ["ground"],
+    "entei": ["ground", "rock", "water"],
+    "suicine": ["grass", "electric"],
     "lugia": ["rock", "ghost", "electric", "ice", "dark"],
-    #"ho-oh": ["rockx2", "water", "electric"],
+    "ho-oh": ["rockx2", "water", "electric"],
 
     "tyranitar": ["fightingx2", "ground", "bug", "steel", "water", "grass", "fairy"],
     "snorlax": ["fighting"],
