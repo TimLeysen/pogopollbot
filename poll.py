@@ -31,11 +31,13 @@ class Poll(metaclass=ABCMeta):
         self.deleted = False
         self.deleted_reason = None
         self.finished = False
-        
+
+
         if pokedex.is_exclusive_raid_boss(self.pokemon):
-            self.chat_id = config.exclusive_raids_channel_id
+            self.channel_name = config.exclusive_raids_channel_id
         else:
-            self.chat_id = config.raids_channel_id
+            self.channel_name = config.raids_channel_id
+        self.chat_id = None
         self.message_id = None
     
     def id_string(self):

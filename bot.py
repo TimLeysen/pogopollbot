@@ -8,7 +8,7 @@ list - lists all polls. Example: /list
 setlevel - sets your trainer level. Example: /setlevel 40
 """
 
-from datetime import datetime,timedelta
+from datetime import date,datetime,timedelta
 import logging
 import os
 import pickle
@@ -121,10 +121,9 @@ def parse_poll_id_arg(update, arg : str):
     return int(id)
 
 def update_poll_message(poll):
-    chat_id = config.raids_channel_id
     try:
         logging.info('Update poll message for poll with id {}'.format(poll.id))
-        bot.edit_message_text(chat_id=chat_id, message_id=poll.message_id,
+        bot.edit_message_text(chat_id=poll.chat_id, message_id=poll.message_id,
                               text=poll.message(), reply_markup=poll.reply_markup(),
                               parse_mode='html')
     except Exception as e:
@@ -143,36 +142,57 @@ def log_command(update, command, args = None):
     logging.info('{} ({}) used command \'{}\' in chat {}'.format(user.name, user.id, command, chat_title))
 
 def __delete_poll_message(poll):
-    bot.delete_message(chat_id = config.raids_channel_id, message_id=poll.message_id)
+    bot.delete_message(chat_id = poll.chat_id, message_id=poll.message_id)
     del[polls[poll.id]]
-    
+
 """
 Command argument parsing
 """
 
-def parse_args_pokemon(arg):
+def parse_args_pokemon(update, arg):
     pokemon = pokedex.capwords(arg)
     if not pokedex.name_exists(pokemon):
         msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
         send_command_message(update, msg)
         raise ValueError('Passed argument is not a Pokemon')
+
     return pokemon
 
-def parse_args_date(arg): # returns date
+def parse_args_date(update, arg): # returns date
     try:
-        return datetime.strptime(arg, '%d/%m').date()
+        d = datetime.strptime(arg, '%d/%m').date()
     except:
-        msg = 'Incorrect time format. Expected day/month. For example: 1/9'
+        msg = 'Incorrect date format. Expected day/month. For example: 1/9'
         send_command_message(update, msg)
         raise ValueError('Incorrect date format. Expected %d/%m.')
 
-def parse_args_time(arg): # returns time
+    year = datetime.now().year
+    return date(year, d.month, d.day)
+
+def parse_args_time(update, arg): # returns time
     try:
         return datetime.strptime(arg, '%H:%M').time()
     except:
         msg = 'Incorrect time format. Expected hour:minute. For example: 13:00'
         send_command_message(update, msg)
         raise ValueError('Incorrect time format. Expected %H:%M.')
+
+def parse_args_timer(update, arg): # returns timedelta
+    timer = arg
+    try:
+        t = datetime.strptime(timer, '%H:%M').time()
+        timer = timedelta(hours=t.hour, minutes=t.minute)
+    except:
+        msg = 'Incorrect timer format. Expected hour:minute. For example: 1:45.'
+        send_command_message(update, msg)
+        raise ValueError('Incorrect timer format. Expected %H:%M.')
+
+    if timer.total_seconds() > 7200:
+        msg = 'Timer should be less than 2:00.'
+        send_command_message(update, msg)
+        raise ValueError(msg)
+
+    return timer
 
 def __add_date_to_time(t : time):
     now = datetime.now()
@@ -196,8 +216,8 @@ def start_poll(bot, update, args):
         raise ValueError('Incorrect format: expected three arguments: raid boss, time, location')
 
     try:
-        pokemon = parse_args_pokemon(args[0])
-        t = parse_args_time(args[1])
+        pokemon = parse_args_pokemon(update, args[0])
+        t = parse_args_time(update, args[1])
         location = ' '.join(args[2:])
     except ValueError as e:
         logging.info(e)
@@ -218,35 +238,41 @@ def start_exclusive_poll(bot, update, args):
         raise ValueError('Incorrect format: expected four arguments: raid boss, date, time, location')
 
     try:
-        pokemon = parse_args_pokemon(args[0])
-        d = parse_args_date(args[1])
-        t = parse_args_time(args[2])
+        pokemon = parse_args_pokemon(update, args[0])
+        d = parse_args_date(update, args[1])
+        t = parse_args_time(update, args[2])
         location = ' '.join(args[3:])
     except ValueError as e:
         logging.info(e)
         return
 
     dt = datetime.combine(d, t)
-    creator = update.from_user.name
-    __create_poll(pokemon, dt, location, creator)
+    print(dt)
+    creator = update.message.from_user.name
+    # Don't delete exclusive polls. We might need the information later
+    # FIXME: Don't close them either until we fix those long sleeps...
+    __create_poll(pokemon, dt, location, creator, auto_close = False, auto_delete = False)
 
-def __create_poll(pokemon, dt : datetime, location, creator):
+def __create_poll(pokemon, dt : datetime, location, creator, auto_close = True, auto_delete = True):
     poll = RaidPoll(pokemon, dt, location, creator)
 
     try:
         __post_poll(poll)
-        polls[poll.id] = poll
     except:
         msg = 'Error posting poll {}'.format(poll.description())
         send_bot_chat_message(msg)
         return
     
+    polls[poll.id] = poll
+
     msg = '{} created a poll: {}.\n'.format(creator, poll.description())
-    msg += 'You can subscribe in {}'.format(config.raids_channel_id)
+    msg += 'You can subscribe in {}'.format(poll.channel_name)
     send_message(msg)
 
-    dispatcher.run_async(close_poll_on_timer, *(poll.id, False))
-    dispatcher.run_async(delete_poll_on_timer, *(poll.id, ))
+    if auto_close:
+        dispatcher.run_async(close_poll_on_timer, *(poll.id, False))
+    if auto_delete:
+        dispatcher.run_async(delete_poll_on_timer, *(poll.id, ))
     
     # dispatcher.run_async(eastereggs.check_poll_count, *(poll.global_id))
     
@@ -254,7 +280,7 @@ def __create_poll(pokemon, dt : datetime, location, creator):
 
 def close_poll_on_timer(poll_id, silent=False):
     poll = polls[poll_id]
-    
+
     if poll.end_time > datetime.now():
         delta = poll.end_time - datetime.now()
         time.sleep(delta.seconds)
@@ -327,10 +353,9 @@ def delete_all_polls(bot, update):
     if not admin(update):
         return
     
-    chat_id = config.raids_channel_id
     for poll in polls.values():
         try:
-            bot.delete_message(chat_id=chat_id, message_id=poll.message_id)
+            bot.delete_message(chat_id=poll.chat_id, message_id=poll.message_id)
         except Exception as e:
             logging.error('Failed to delete poll {} with message id {}'.format(poll.id, poll.message_id))
             logging.exception(e)
@@ -541,55 +566,35 @@ USER COMMANDS (CHAT)
 """
 def __parse_args_report_raid(update, args): # returns raid boss : str, timer : str, location : str
     if len(args) < 3:
-        msg = 'Incorrect format. Usage: /raid <raid-boss> <raid-timer> <location>. '\
+        msg = 'Incorrect format. Usage: /raid <pokemon> <timer> <location>. '\
               'For example: /raid Moltres 1:45 Park Sint-Niklaas'
         send_command_message(update, msg)
-        raise ValueError('Incorrect format: expected three arguments: raid boss, raid timer, location')
+        raise ValueError('Incorrect format: expected three arguments: boss, timer, location')
 
-    pokemon = args[0].capitalize() # TODO: Ho-Oh
-    if not pokedex.name_exists(pokemon):
-        msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
-        send_command_message(update, msg)
-        raise ValueError('Passed argument is not a Pokemon')
+    try:
+        pokemon = parse_args_pokemon(update, args[0])
+        timer = parse_args_timer(update, args[1])
+        location = ' '.join(args[2:])
+    except ValueError as e:
+        logging.info(e)
+        return        
 
-    # Unnecessary and raid bosses might change over time
-    # if not pokedex.is_raid_boss(pokemon):
-        # msg = '{} is not a raid boss!'.format(pokemon)
-        # send_command_message(update, msg)
-        # raise ValueError('Pokemon is not a raid boss')
-    
     # Disabled so people won't complain
     # if not pokemon in allowed_bosses_to_report:
         # msg = 'Reporting {} is not allowed'.format(pokemon)
         # send_command_message(update, msg)
         # raise ValueError('Pokemon is not a raid boss or too low level')
-
-    timer = args[1]
-    try:
-        t = datetime.strptime(timer, '%H:%M').time()
-        timer = timedelta(hours=t.hour, minutes=t.minute)
-    except:
-        msg = 'Incorrect timer format. Expected HH:MM. For example: 1:45.'
-        send_command_message(update, msg)
-        raise ValueError('Incorrect time format. Expected HH:MM.')
-
-    if timer.total_seconds() > 7200:
-        msg = 'Raid timer should be less than 2:00.'
-        send_command_message(update, msg)
-        raise ValueError(msg)
         
-    end_time = datetime.now() + timer
-    location = ' '.join(args[2:])
-
-    return pokemon, end_time, location
+    dt = datetime.now() + timer
+    return pokemon, dt, location
 
 def __post_poll(poll):
     try:
-        msg = bot.send_message(chat_id=poll.chat_id,
-                                       text=poll.message(),
-                                       reply_markup=poll.reply_markup(),
-                                       parse_mode='html')
-        poll.chat_id = msg.chat.id # get the real chat id (number)
+        msg = bot.send_message(chat_id=poll.channel_name,
+                               text=poll.message(),
+                               reply_markup=poll.reply_markup(),
+                               parse_mode='html')
+        poll.chat_id = msg.chat.id
         poll.message_id = msg.message_id
     except Exception as e:
         logging.error('Failed to create poll message for start time poll {}'.format(poll.id))
@@ -619,14 +624,15 @@ def report_raid(bot, update, args):
 
     try:
         __post_poll(poll)
-        polls[poll.id] = poll
     except:
         msg = 'Error posting poll {}'.format(poll.description())
         send_command_message(update, msg)
         return
     
+    polls[poll.id] = poll
+
     msg = '{} reported a raid: {}\n'.format(creator, poll.description())
-    msg += 'You can vote for a start time in {}'.format(config.raids_channel_id)
+    msg += 'You can vote for a start time in {}'.format(poll.channel_name)
     send_message(msg)
     
     dispatcher.run_async(close_poll_on_timer, *(poll.id, True))
@@ -681,9 +687,6 @@ def chat_id(bot, update):
 
 def test(bot, update):
     log_command(update, test.__name__)
-    # if not admin(update):
-    if not config.test_version:
-        return
 
     pokemon = random.choice(list(pokedex.raid_bosses.keys()))
     start_time = datetime.strftime(datetime.now() + timedelta(minutes=10), '%H:%M')
@@ -695,6 +698,16 @@ def test(bot, update):
     m = random.randrange(0, 60)
     timer = '{}:{}'.format(h, str(m).zfill(2))
     # report_raid(bot, update, [pokemon, timer, 'TEST'])
+
+def testexcl(bot, update):
+    log_command(update, test.__name__)
+
+    pokemon = random.choice(list(pokedex.exclusive_raid_bosses))
+    hours = random.randrange(24, 72)
+    dt = datetime.now() +timedelta(hours=hours)
+    d = datetime.strftime(dt, '%d/%m')
+    t = datetime.strftime(dt, '%H:%M')
+    start_exclusive_poll(bot, update, [pokemon, d, t, 'TEST'])
 
 data_file = 'data.pickle'
 def save_state(bot, update):
@@ -934,6 +947,7 @@ dispatcher.add_handler(CommandHandler('load', load_state))
 dispatcher.add_handler(CommandHandler('quit', quit))
 if config.test_version:
     dispatcher.add_handler(CommandHandler('test', test))
+    dispatcher.add_handler(CommandHandler('testexcl', testexcl))
 
 # UNKNOWN COMMANDS
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
