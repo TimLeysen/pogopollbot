@@ -132,6 +132,7 @@ class RaidPoll(Poll):
 
     def add_vote(self, id, name, level, choice):
         changed = False
+        first_vote = not self.all_voters[0].exists(id)
 
         # clunky but whatever
         if choice is 0: # I can come
@@ -141,9 +142,10 @@ class RaidPoll(Poll):
         
         if choice is 1: # I can't come (anymore)
             # don't care about these users so don't store anything
-            if self.all_voters[0].exists(id):
+            if not first_vote:
                 self.all_voters[0].remove(id)
                 changed = True
-            
-        self.all_voters[0].sort_by_level()
+
+        if changed and first_vote:
+            self.all_voters[0].sort_by_level()
         return changed
