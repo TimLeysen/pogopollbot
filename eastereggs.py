@@ -2,7 +2,7 @@ import config
 import logging
 import time
 
-chat_id = config.output_chat_id
+chat_id = config.main_chat_id
 
 def print_countdown(bot, i):
     bot.send_message(chat_id=chat_id, text=str(5-i))

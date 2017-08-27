@@ -52,7 +52,7 @@ Helper functions
 def send_message(bot, msg):
     logging.info('send message: {}'.format(msg))
     bot.send_message(chat_id=config.input_chat_id, text=msg, disable_web_page_preview=True)
-    bot.send_message(chat_id=config.output_chat_id, text=msg, disable_web_page_preview=True)
+    bot.send_message(chat_id=config.main_chat_id, text=msg, disable_web_page_preview=True)
 
 # Send a message to the channel where a user used a command
 # This is mainly for giving information when using a command wrong.
@@ -555,7 +555,7 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
     
 def report_raid(bot, update, args):
     log_command(bot, update, report_raid.__name__, args)
-    # if update.message.chat_id != config.output_chat_id and not authorized(bot, update):
+    # if update.message.chat_id != config.main_chat_id and not authorized(bot, update):
         # return
     # TEMPORARILY FOR TESTING/ROLLOUT
     if not authorized(bot, update):
