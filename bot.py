@@ -98,15 +98,12 @@ def admin(bot, update, print_warning=True):
 
 def poll_exists(id : int):
     return id in polls
-
-def is_poll(msg_id):
-    return msg_id in [poll.message_id for poll in polls.values()]
     
-def get_poll(msg_id):
+def get_poll(chat_id, msg_id):
     for poll in polls.values():
-        if poll.message_id == msg_id:
+        if poll.chat_id == chat_id and poll.message_id == msg_id:
             return poll
-    raise ValueError('Poll with message_id {} does not exist!'.format(msg_id))
+    raise ValueError('Poll with message_id {} in chat with id {} does not exist!'.format(msg_id, chat_id))
 
 def parse_poll_id_arg(bot, update, arg : str):
     id = arg.lstrip('#')
@@ -197,10 +194,11 @@ def __start_poll(pokemon, start_time, location, creator):
     poll = RaidPoll(pokemon, start_time, location, creator)
 
     try:
-        msg = bot.send_message(chat_id=config.raids_channel_id,
+        msg = bot.send_message(chat_id=poll.chat_id,
                                text=poll.message(),
                                reply_markup=poll.reply_markup(),
                                parse_mode='html')
+        poll.chat_id = msg.chat.id # get the real chat id (number)
     except Exception as e:
         logging.error('Failed to create poll message for poll {}'.format(poll.id))
         logging.exception(e)
@@ -575,10 +573,11 @@ def report_raid(bot, update, args):
         return
 
     try:
-        msg = bot.send_message(chat_id=config.raids_channel_id,
+        msg = bot.send_message(chat_id=poll.chat_id,
                                text=poll.message(),
                                reply_markup=poll.reply_markup(),
                                parse_mode='html')
+        poll.chat_id = msg.chat.id # get the real chat id (number)
     except Exception as e:
         logging.error('Failed to create poll message for start time poll {}'.format(poll.id))
         logging.exception(e)
@@ -636,7 +635,7 @@ ADMIN COMMANDS
 """
     
 def chat_id(bot, update):
-    log_command(bot, update, chat_id.__name__)
+    log_command(bot, update, 'chat_id')
     chat_id = update.message.chat_id
     msg = 'This chat\'s id is {}'.format(chat_id)
     send_command_message(bot, update, msg)
@@ -656,7 +655,7 @@ def test(bot, update):
     h = random.randrange(1, 2)
     m = random.randrange(0, 60)
     timer = '{}:{}'.format(h, str(m).zfill(2))
-    report_raid(bot, update, [pokemon, timer, 'TEST'])
+    # report_raid(bot, update, [pokemon, timer, 'TEST'])
 
 data_file = 'data.pickle'
 def save_state(bot, update):
@@ -733,46 +732,44 @@ OTHER STUFF
 """        
 def vote_callback(bot, update):
     query = update.callback_query
+    chat_id = query.message.chat.id
     msg_id = query.message.message_id
     
-    poll = get_poll(msg_id)
+    poll = get_poll(chat_id, msg_id)
     if type(poll) is RaidPoll:
-        return __raid_poll_vote_callback(bot, update)
+        return __raid_poll_vote_callback(bot, update, poll)
     
     if type(poll) is TimePoll:
-        return __time_poll_vote_callback(bot, update)
+        return __time_poll_vote_callback(bot, update, poll)
 
         
-def __raid_poll_vote_callback(bot, update):
+def __raid_poll_vote_callback(bot, update, poll):
     query = update.callback_query
-    msg_id = query.message.message_id
-    poll = get_poll(msg_id)
-    
+    user = query.from_user
     level = database.get_level(query.from_user.id)
+    choice = int(query.data)
     
     try:
-        user = query.from_user
-        poll.add_vote(user.id, user.name, level, int(query.data))
+        poll.add_vote(user.id, user.name, level, choice)
     except KeyError as e:
         logging.info('User tried to vote for an old poll that is still open')
         return
         
     logging.info('{} voted {} on poll {} with message id {}'\
-        .format(query.from_user.name, query.data, poll.id, poll.message_id))
+        .format(user.name, choice, poll.id, poll.message_id))
 
     # quite slow after the first vote from a person... takes 3s or longer to update...
     # seems to be the way how long polling works?
     update_poll_message(bot, poll)
+
     bot.answer_callback_query(query.id)
 
 
-def __time_poll_vote_callback(bot, update):
+def __time_poll_vote_callback(bot, update, poll):
     query = update.callback_query
-    msg_id = query.message.message_id
-    poll = get_poll(msg_id)
-
     user = query.from_user
     time = query.data
+
     try:
         results_changed = poll.add_vote(user.id, user.name, time)
     except KeyError as e:

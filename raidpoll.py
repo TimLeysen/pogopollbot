@@ -3,6 +3,7 @@ import itertools
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
+from common import from_string, to_string
 import config
 import pokedex
 from poll import Poll
@@ -11,12 +12,6 @@ from poll import Poll
 if not config.enable_translations:
     _ = lambda s: s
 
-
-def from_string(t : str):
-    return datetime.strptime(t, '%H:%M')
-
-def to_string(t : datetime):
-    return datetime.strftime(t, '%H:%M')
 
 
 class Voter:
@@ -85,22 +80,11 @@ class RaidPoll(Poll):
         return InlineKeyboardMarkup([row])
 
     def __init__(self, pokemon, time : datetime, location, creator):
-        super().__init__(time, creator)
-        
-        self.pokemon = pokemon
-        self.img_url = 'http://floatzel.net/pokemon/black-white/sprites/images/{0}.png'\
-                        .format(pokedex.get_id(pokemon))
-        self.location = location
+        super().__init__(pokemon, time, location, creator)
 
         self.time_poll_id = None
 
         self.all_voters = [Voters()]
-
-    def description(self):
-        desc = '#{} {} {} {}'.format(self.id_string(), self.pokemon,
-            to_string(self.end_time), self.location)
-        desc += super().description_suffix()
-        return desc
 
     def message(self):
         # disabled: image is too big on phones and we can't change the preview size

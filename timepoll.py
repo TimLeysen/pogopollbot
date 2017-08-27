@@ -6,6 +6,7 @@ import re
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import zope.event
 
+from common import from_string, to_string
 import config
 import pokedex
 from poll import Poll
@@ -15,27 +16,19 @@ if not config.enable_translations:
     _ = lambda s: s
 
 
-def from_string(t : str):
-    return datetime.strptime(t, '%H:%M')
-
-def to_string(t : datetime):
-    return datetime.strftime(t, '%H:%M')
-
 
 class VoteCountReachedEvent:
     def __init__(self, poll_id, start_time):
         self.poll_id = poll_id
         self.start_time = start_time
-    
+
+
 class TimePoll(Poll):
     min_votes = 3 if not config.test_version else 1
     max_times = 3
     
     def __init__(self, pokemon, end_time : datetime, location, creator):
-        super().__init__(end_time, creator)
-        
-        self.pokemon = pokemon
-        self.location = location
+        super().__init__(pokemon, end_time, location, creator)
               
         self.times = {} # key: start time, value: voters
         for time in self.calc_start_times(self.end_time):
@@ -75,12 +68,6 @@ class TimePoll(Poll):
         for time in self.times:
             row.append(InlineKeyboardButton(time, callback_data=time))
         return InlineKeyboardMarkup([row])
-        
-    def description(self):
-        desc = '#{} {} {} ({}: {})'.format(self.id_string(), self.pokemon,
-            self.location, _('ends at'), to_string(self.end_time))
-        desc += super().description_suffix()
-        return desc
 
     def message(self):
         msg = ''
