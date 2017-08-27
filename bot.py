@@ -47,12 +47,18 @@ polls = {}
 Helper functions
 """
 
-# Sends a message to both the input and output chats and logs it
+# Sends a message to both the main and the bot chat
 # Messages: created/closed/deleted a poll
 def send_message(bot, msg):
     logging.info('send message: {}'.format(msg))
     bot.send_message(chat_id=config.bot_chat_id, text=msg, disable_web_page_preview=True)
     bot.send_message(chat_id=config.main_chat_id, text=msg, disable_web_page_preview=True)
+
+# Sends a message to the bot chat
+# Normally we would use send_command_message but __start_poll e.g. can't do this cause it has no update object
+def send_bot_chat_message(bot, msg):
+    logging.info('send bot chat message: {}'.format(msg))
+    bot.send_message(chat_id=config.bot_chat_id, text=msg, disable_web_page_preview=True)
 
 # Send a message to the channel where a user used a command
 # This is mainly for giving information when using a command wrong.
@@ -194,18 +200,11 @@ def __start_poll(pokemon, start_time, location, creator):
     poll = RaidPoll(pokemon, start_time, location, creator)
 
     try:
-        msg = bot.send_message(chat_id=poll.chat_id,
-                               text=poll.message(),
-                               reply_markup=poll.reply_markup(),
-                               parse_mode='html')
-        poll.chat_id = msg.chat.id # get the real chat id (number)
-    except Exception as e:
-        logging.error('Failed to create poll message for poll {}'.format(poll.id))
-        logging.exception(e)
+        __post_poll(poll)
+    except:
+        msg = 'Error posting poll {}'.format(poll.description())
+        send_bot_chat_message(bot, msg)
         return
-        
-    poll.message_id = msg.message_id
-    polls[poll.id] = poll
     
     msg = '{} created a poll: {}.\n'.format(creator, poll.description())
     msg += 'You can subscribe in {}'.format(config.raids_channel_id)
@@ -549,7 +548,20 @@ def __parse_args_report_raid(bot, update, args): # returns raid boss : str, time
     location = ' '.join(args[2:])
 
     return pokemon, end_time, location
-    
+
+def __post_poll(poll):
+    try:
+        msg = updater.bot.send_message(chat_id=poll.chat_id,
+                                       text=poll.message(),
+                                       reply_markup=poll.reply_markup(),
+                                       parse_mode='html')
+        poll.chat_id = msg.chat.id # get the real chat id (number)
+        poll.message_id = msg.message_id
+        polls[poll.id] = poll
+    except Exception as e:
+        logging.error('Failed to create poll message for start time poll {}'.format(poll.id))
+        logging.exception(e)
+        raise e
     
 def report_raid(bot, update, args):
     log_command(bot, update, report_raid.__name__, args)
@@ -573,18 +585,11 @@ def report_raid(bot, update, args):
         return
 
     try:
-        msg = bot.send_message(chat_id=poll.chat_id,
-                               text=poll.message(),
-                               reply_markup=poll.reply_markup(),
-                               parse_mode='html')
-        poll.chat_id = msg.chat.id # get the real chat id (number)
-    except Exception as e:
-        logging.error('Failed to create poll message for start time poll {}'.format(poll.id))
-        logging.exception(e)
+        __post_poll(poll)
+    except:
+        msg = 'Error posting poll {}'.format(poll.description())
+        send_command_message(bot, update, msg)
         return
-        
-    poll.message_id = msg.message_id
-    polls[poll.id] = poll
     
     msg = '{} reported a raid: {}\n'.format(creator, poll.description())
     msg += 'You can vote for a start time in {}'.format(config.raids_channel_id)
