@@ -51,7 +51,7 @@ Helper functions
 # Messages: created/closed/deleted a poll
 def send_message(bot, msg):
     logging.info('send message: {}'.format(msg))
-    bot.send_message(chat_id=config.input_chat_id, text=msg, disable_web_page_preview=True)
+    bot.send_message(chat_id=config.bot_chat_id, text=msg, disable_web_page_preview=True)
     bot.send_message(chat_id=config.main_chat_id, text=msg, disable_web_page_preview=True)
 
 # Send a message to the channel where a user used a command
@@ -62,7 +62,7 @@ def send_command_message(bot, update, msg):
 
 # Test if a user is allowed to send commands to the bot
 def authorized(bot, update):
-    if update.message.chat_id != config.input_chat_id:
+    if update.message.chat_id != config.bot_chat_id:
         logging.warning('Unauthorized access from {} (wrong chat)'\
             .format(update.message.from_user.name))
         # bot.send_message(chat_id=update.message.chat_id, text='Not authorized')
@@ -77,7 +77,7 @@ def admin(bot, update, print_warning=True):
     if not authorized(bot, update):
         return
 
-    chat_id = config.input_chat_id
+    chat_id = config.bot_chat_id
     user_id = update.message.from_user.id
     try:
         member = bot.get_chat_member(chat_id=chat_id, user_id=user_id)
@@ -379,7 +379,7 @@ def __delete_poll(bot, poll_id, reason=None, update=None):
         msg = 'Automatically deleted a poll: {}.'.format(description)
         # don't print useless information to main chat!
         logging.info(msg)
-        bot.send_message(chat_id=config.input_chat_id, text=msg)
+        bot.send_message(chat_id=config.bot_chat_id, text=msg)
         
     del polls[poll_id]
 
@@ -469,7 +469,7 @@ def list_bosses(bot, update, args):
     
 def help(bot, update):
     log_command(bot, update, help.__name__)
-    is_input_chat = update.message.chat_id == config.input_chat_id
+    is_input_chat = update.message.chat_id == config.bot_chat_id
     if not (private_chat(bot,update) or is_input_chat):
         return
 
@@ -903,13 +903,13 @@ dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
 # OTHER STUFF
 dispatcher.add_handler(CallbackQueryHandler(vote_callback))
-dispatcher.add_handler(MessageHandler(Filters.chat(chat_id=config.input_chat_id), member_joined))
+dispatcher.add_handler(MessageHandler(Filters.chat(chat_id=config.bot_chat_id), member_joined))
 dispatcher.add_error_handler(error_callback)
 
 __load_state()
 updater.start_polling()
 logging.info('Ready to work!')
-updater.bot.send_message(chat_id=config.input_chat_id, text='Ready to work!')
+updater.bot.send_message(chat_id=config.bot_chat_id, text='Ready to work!')
 updater.idle()
 logging.error('after updater.idle()')
 __save_state()

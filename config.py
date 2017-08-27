@@ -6,7 +6,7 @@ test_version = True
 if test_version:
     polls_channel_id = '@PoGoWaaslandRaidsTest'
     main_chat_id = -1001127228363 # '@PoGoWaaslandTest'
-    input_chat_id = -212819985 # PoGoWaaslandBotTest
+    bot_chat_id = -212819985 # PoGoWaaslandBotTest
     bot_token = '382260415:AAHcSfajoIkJgvRa93_HraivGqBTjsnwTmE'
 else:
     # channel where polls are broadcast
@@ -14,7 +14,7 @@ else:
     # general chat where create, close and delete commands are posted
     main_chat_id = -1001127550956 # '@PoGoWaasland'
     # chat from where users can send commands to the bot
-    input_chat_id = -228155825 # PoGo Waasland Bot
+    bot_chat_id = -228155825 # PoGo Waasland Bot
     bot_token = '427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg'
     
 enable_raid_command = True
