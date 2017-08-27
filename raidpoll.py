@@ -103,8 +103,11 @@ class RaidPoll(Poll):
         
         msg += '\n\n'
         weaknesses = []
-        for weakness in pokedex.raid_bosses[self.pokemon.lower()]:
-            weaknesses.append('<b>{}</b>'.format(weakness) if weakness[-2:]=='x2' else weakness)
+        try:
+            for weakness in pokedex.raid_bosses[self.pokemon.lower()]:
+                weaknesses.append('<b>{}</b>'.format(weakness) if weakness[-2:]=='x2' else weakness)
+        except:
+            pass
         msg += 'Weaknesses: {}\n\n'.format(', '.join(weaknesses))
         
         if self.closed and self.closed_reason:
