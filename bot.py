@@ -177,7 +177,7 @@ def parse_args_date(update, arg): # returns date
     try:
         d = datetime.strptime(arg, '%d/%m').date()
     except:
-        msg = 'Incorrect date format. Expected day/month. For example: 1/9'
+        msg = '{} is not a date. Expected format: day/month. For example: 1/9'.format(arg)
         send_command_message(update, msg)
         raise ValueError('Incorrect date format. Expected %d/%m.')
 
@@ -188,7 +188,7 @@ def parse_args_time(update, arg): # returns time
     try:
         return datetime.strptime(arg, '%H:%M').time()
     except:
-        msg = 'Incorrect time format. Expected hour:minute. For example: 13:00'
+        msg = '{} is not a time. Expected format: hour:minute. For example: 13:00'.format(arg)
         send_command_message(update, msg)
         raise ValueError('Incorrect time format. Expected %H:%M.')
 
@@ -198,7 +198,7 @@ def parse_args_timer(update, arg): # returns timedelta
         t = datetime.strptime(timer, '%H:%M').time()
         timer = timedelta(hours=t.hour, minutes=t.minute)
     except:
-        msg = 'Incorrect timer format. Expected hour:minute. For example: 1:45.'
+        msg = '{} is not a timer. Expected format: hour:minute. For example: 1:45.'.format(arg)
         send_command_message(update, msg)
         raise ValueError('Incorrect timer format. Expected %H:%M.')
 
