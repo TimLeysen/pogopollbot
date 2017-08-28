@@ -540,7 +540,7 @@ def list_bosses(bot, update, args):
 def help(bot, update):
     log_command(update, help.__name__)
     is_input_chat = update.message.chat_id == config.bot_chat_id
-    if not (private_chat(bot,update) or is_input_chat):
+    if not (private_chat(update) or is_input_chat):
         return
 
     msg = '/help\n'\
@@ -775,7 +775,7 @@ UNKNOWN COMMANDS
 """
 def unknown_command(bot, update):
     # setlevel command will be done in pm
-    if not authorized(update) and not private_chat(bot,update):
+    if not authorized(update) and not private_chat(update):
         return
 
     msg = "Sorry, that command is unown to me."
