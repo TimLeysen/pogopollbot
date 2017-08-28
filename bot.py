@@ -681,8 +681,7 @@ ADMIN COMMANDS
     
 def chat_id(bot, update):
     log_command(update, 'chat_id')
-    chat_id = update.message.chat_id
-    msg = 'This chat\'s id is {}'.format(chat_id)
+    msg = 'This chat\'s id is {}'.format(update.message.chat_id)
     send_command_message(update, msg)
 
 def test(bot, update):
