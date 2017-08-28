@@ -341,7 +341,7 @@ def __close_poll(poll_id, reason=None, update=None, silent=False):
         if reason:
             msg += ' Reason: {}.'.format(reason)
     else:
-        msg = 'Automatically closed a poll: {}.'.format(poll.description())
+        msg = 'A raid is starting: {}.'.format(poll.description())
     
     if silent:
         logging.info(msg)
