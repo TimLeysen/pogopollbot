@@ -1,11 +1,13 @@
 """
 BotFather /setdescription
-help - shows the help message. Example: /help
-start - starts a poll. Example: /start Snorlax 13:00 Park
-close - closes a poll. Example: /close 1 Not enough people
-delete - deletes a poll. Example: /delete 1 Wrong start time!
-list - lists all polls. Example: /list
-setlevel - sets your trainer level. Example: /setlevel 40
+help - shows the help message
+poll - starts a raid poll
+pollexcl - starts an exclusive poll
+raid - reports a raid
+close - closes a poll
+delete - deletes a poll
+list - lists all polls
+setlevel - sets your trainer level (PM only)
 """
 
 from datetime import date,datetime,timedelta
@@ -224,7 +226,7 @@ def start_poll(bot, update, args):
         return
 
     if len(args) < 3:
-        msg = 'Incorrect format. Usage: /start <raid-boss> <time> <location>. For example: /start Moltres 13:00 Park Sint-Niklaas'
+        msg = 'Incorrect format. Usage: /poll <raid-boss> <time> <location>. For example: /poll Moltres 13:00 Park Sint-Niklaas'
         send_command_message(update, msg)
         raise ValueError('Incorrect format: expected three arguments: raid boss, time, location')
 
@@ -246,7 +248,7 @@ def start_exclusive_poll(bot, update, args):
         return
 
     if len(args) < 4:
-        msg = 'Incorrect format. Usage: /startexcl <raid-boss> <date> <time> <location>. For example: /start Mewtwo 1/9 13:00 Park Sint-Niklaas'
+        msg = 'Incorrect format. Usage: /pollexcl <raid-boss> <date> <time> <location>. For example: /pollexcl Mewtwo 1/9 13:00 Park Sint-Niklaas'
         send_command_message(update, msg)
         raise ValueError('Incorrect format: expected four arguments: raid boss, date, time, location')
 
@@ -549,7 +551,11 @@ def help(bot, update):
           \
           '/poll <pokemon> <time> <location>\n'\
           'Starts a new raid poll.\n'\
-          'Example: /start Snorlax 13:30 Park Sint-Niklaas\n\n'
+          'Example: /poll Snorlax 13:30 Park Sint-Niklaas\n\n'\
+          \
+          '/pollexcl <pokemon> <data> <time> <location>\n'\
+          'Starts a new exclusive raid poll.\n'\
+          'Example: /pollexcl Mewtwo 30/10 19:00 Park Sint-Niklaas\n\n'
 
     if config.enable_raid_command:
         msg += \
@@ -928,7 +934,7 @@ rootLogger.addHandler(consoleHandler)
 
 # BOT USER COMMANDS
 dispatcher.add_handler(CommandHandler('poll', start_poll, pass_args=True))
-dispatcher.add_handler(CommandHandler('startexcl', start_exclusive_poll, pass_args=True))
+dispatcher.add_handler(CommandHandler('pollexcl', start_exclusive_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
