@@ -346,15 +346,16 @@ def __close_poll(poll_id, reason=None, update=None, silent=False):
             logging.info(msg)
         return
     
+    description = poll.description()
     poll.set_closed(reason)
     update_poll_message(poll)
 
     if update:
-        msg = '{} closed a poll: {}.'.format(update.message.from_user.name, poll.description())
+        msg = '{} closed a poll: {}.'.format(update.message.from_user.name, description)
         if reason:
             msg += ' Reason: {}.'.format(reason)
     else:
-        msg = 'A raid is starting: {}.'.format(poll.description())
+        msg = 'A raid is starting: {}.'.format(description)
     
     if silent:
         logging.info(msg)
@@ -434,12 +435,12 @@ def __delete_poll(poll_id, reason=None, update=None):
         return
 
     poll = polls[poll_id]
+    description = poll.description()
     poll.set_deleted(reason)
     if update is None: # automatically deleted
         poll.set_finished()
     update_poll_message(poll)
     
-    description = poll.description()
     if update is not None:
         msg = '{} deleted a poll: {}.'.format(update.message.from_user.name, description)
         if reason is not None:
