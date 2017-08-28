@@ -546,7 +546,7 @@ def help(bot, update):
     msg = '/help\n'\
           'Shows this message\n\n'\
           \
-          '/start <pokemon> <time> <location>\n'\
+          '/poll <pokemon> <time> <location>\n'\
           'Starts a new raid poll.\n'\
           'Example: /start Snorlax 13:30 Park Sint-Niklaas\n\n'\
           \
@@ -848,9 +848,9 @@ def member_joined(bot, update):
         names = [x.name for x in new_members]
         logging.info('member(s) joined: {}'.format(','.join(names)))
         msg = _('Welcome {}!\n'
-                'In this chat you can create a poll by typing e.g. /start Snorlax 14:00 Park.\n'
+                'In this chat you can create a raid poll by typing e.g. /poll Snorlax 14:00 Park.\n'
                 'Polls are automatically closed when the start time elapses.\n'
-                'You can also manually close a poll by typing e.g. /close 1. You can see the number of the poll by typing /list.\n'
+                'You can also manually close a poll by typing e.g. /close 8 You can see the number of the poll by typing /list.\n'
                 'Please discuss a proper starting time in the main chat before creating a new poll!\n'
                 'Type /help for more information.'
                 ).format(','.join(names))
@@ -923,7 +923,7 @@ consoleHandler.setFormatter(logFormatter)
 rootLogger.addHandler(consoleHandler)
 
 # BOT USER COMMANDS
-dispatcher.add_handler(CommandHandler('start', start_poll, pass_args=True))
+dispatcher.add_handler(CommandHandler('poll', start_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('startexcl', start_exclusive_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
