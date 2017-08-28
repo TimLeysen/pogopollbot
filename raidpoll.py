@@ -69,8 +69,8 @@ class Voters:
 class RaidPoll(Poll):
     # The vote count of the last option is not visualized!
     # This options is used to unsubscribe.
-    options = [_('Subscribe'),
-               _('Unsubscribe')]
+    options = [u'\U00002705' + ' ' + _('Subscribe'), # white heavy check mark
+               u'\U0000274C' + ' ' + _('Unsubscribe')] # cross mark
     show_names = [True, False]
     
     def reply_markup(self):
