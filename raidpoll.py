@@ -111,7 +111,7 @@ class RaidPoll(Poll):
                 weaknesses.append('<b>{}</b>'.format(weakness) if weakness[-2:]=='x2' else weakness)
         except:
             pass
-        msg += 'Weaknesses: {}\n\n'.format(', '.join(weaknesses))
+        msg += '{}: {}\n\n'.format(_('Weaknesses'), ', '.join(weaknesses))
         
         if self.closed and self.closed_reason:
             msg += '{}: {}\n\n'.format(_('Closure reason'), self.closed_reason)
