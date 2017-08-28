@@ -434,9 +434,9 @@ def __delete_poll(poll_id, reason=None, update=None):
         send_command_message(update, msg)
     else:
         msg = 'Automatically deleted a poll: {}.'.format(description)
-        # don't print useless information to main chat!
         logging.info(msg)
-        bot.send_message(chat_id=config.bot_chat_id, text=msg)
+        # Pretty useless information so don't send it to the chat
+        # bot.send_message(chat_id=config.bot_chat_id, text=msg)
         
     del polls[poll_id]
 
