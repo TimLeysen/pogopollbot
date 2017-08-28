@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-08-28 22:04+0200\n"
-"PO-Revision-Date: 2017-08-28 22:05+0200\n"
+"POT-Creation-Date: 2017-08-28 22:17+0200\n"
+"PO-Revision-Date: 2017-08-28 22:18+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl_BE\n"
@@ -17,11 +17,11 @@ msgstr ""
 "X-Generator: Poedit 2.0.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: bot.py:306
+#: bot.py:308
 msgid "time expired"
 msgstr "tijd verstreken"
 
-#: bot.py:854
+#: bot.py:860
 msgid ""
 "Welcome {}!\n"
 "In this chat you can create a raid poll by typing e.g. /poll Snorlax 14:00 "
@@ -63,15 +63,23 @@ msgstr "Ik kom"
 msgid "Unsubscribe"
 msgstr "Ik kom niet meer"
 
-#: raidpoll.py:114
+#: raidpoll.py:73
+msgid "Subscribed"
+msgstr "Ik kom"
+
+#: raidpoll.py:74
+msgid "Unsubscribed"
+msgstr "Ik kom niet meer"
+
+#: raidpoll.py:115
 msgid "Weaknesses"
 msgstr "Zwaktes"
 
-#: raidpoll.py:117 timepoll.py:87
+#: raidpoll.py:118 timepoll.py:87
 msgid "Closure reason"
 msgstr "Reden voor sluiten"
 
-#: raidpoll.py:133 timepoll.py:94
+#: raidpoll.py:130 timepoll.py:94
 msgid "Poll created by"
 msgstr "Poll aangemaakt door"
 

@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2017-08-28 22:04+0200\n"
+"POT-Creation-Date: 2017-08-28 22:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,11 +15,11 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: bot.py:306
+#: bot.py:308
 msgid "time expired"
 msgstr ""
 
-#: bot.py:854
+#: bot.py:860
 msgid ""
 "Welcome {}!\n"
 "In this chat you can create a raid poll by typing e.g. /poll Snorlax 14:00 Park.\n"
@@ -49,15 +49,23 @@ msgstr ""
 msgid "Unsubscribe"
 msgstr ""
 
-#: raidpoll.py:114
+#: raidpoll.py:73
+msgid "Subscribed"
+msgstr ""
+
+#: raidpoll.py:74
+msgid "Unsubscribed"
+msgstr ""
+
+#: raidpoll.py:115
 msgid "Weaknesses"
 msgstr ""
 
-#: raidpoll.py:117 timepoll.py:87
+#: raidpoll.py:118 timepoll.py:87
 msgid "Closure reason"
 msgstr ""
 
-#: raidpoll.py:133 timepoll.py:94
+#: raidpoll.py:130 timepoll.py:94
 msgid "Poll created by"
 msgstr ""
 
