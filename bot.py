@@ -120,6 +120,19 @@ def parse_poll_id_arg(update, arg : str):
         raise ValueError('Incorrect format: unknown poll id')
     return int(id)
 
+def __post_poll(poll):
+    try:
+        msg = bot.send_message(chat_id=poll.channel_name,
+                               text=poll.message(),
+                               reply_markup=poll.reply_markup(),
+                               parse_mode='html')
+        poll.chat_id = msg.chat.id
+        poll.message_id = msg.message_id
+    except Exception as e:
+        logging.error('Failed to create poll message for start time poll {}'.format(poll.id))
+        logging.exception(e)
+        raise e
+
 def update_poll_message(poll):
     try:
         logging.info('Update poll message for poll with id {}'.format(poll.id))
@@ -589,18 +602,6 @@ def __parse_args_report_raid(update, args): # returns raid boss : str, timer : s
     dt = datetime.now() + timer
     return pokemon, dt, location
 
-def __post_poll(poll):
-    try:
-        msg = bot.send_message(chat_id=poll.channel_name,
-                               text=poll.message(),
-                               reply_markup=poll.reply_markup(),
-                               parse_mode='html')
-        poll.chat_id = msg.chat.id
-        poll.message_id = msg.message_id
-    except Exception as e:
-        logging.error('Failed to create poll message for start time poll {}'.format(poll.id))
-        logging.exception(e)
-        raise e
     
 def report_raid(bot, update, args):
     log_command(update, report_raid.__name__, args)
