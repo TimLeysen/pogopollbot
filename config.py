@@ -21,7 +21,7 @@ else:
     bot_token = '427679062:AAHeVxPcKK05S_DvXho4dCM1lu9RHLYbYpg'
     
 enable_raid_command = True
-
+enable_exclusive_polls = True
 
 
 # TRANSLATIONS

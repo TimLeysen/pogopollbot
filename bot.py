@@ -934,7 +934,8 @@ rootLogger.addHandler(consoleHandler)
 
 # BOT USER COMMANDS
 dispatcher.add_handler(CommandHandler('poll', start_poll, pass_args=True))
-dispatcher.add_handler(CommandHandler('pollexcl', start_exclusive_poll, pass_args=True))
+if config.enable_exclusive_polls:
+    dispatcher.add_handler(CommandHandler('pollexcl', start_exclusive_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('close', close_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('delete', delete_poll, pass_args=True))
 dispatcher.add_handler(CommandHandler('deleteall', delete_all_polls))
