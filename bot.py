@@ -265,7 +265,8 @@ def __create_poll(pokemon, dt : datetime, location, creator, auto_close = True, 
     
     polls[poll.id] = poll
 
-    msg = '{} created a poll: {}.\n'.format(creator, poll.description())
+    suffix = 'an exclusive' if poll.is_exclusive() else 'a'
+    msg = '{} created {} raid poll: {}.\n'.format(creator, suffix, poll.description())
     msg += 'You can subscribe in {}'.format(poll.channel_name)
     send_message(msg)
 
