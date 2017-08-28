@@ -553,7 +553,7 @@ def help(bot, update):
           'Starts a new raid poll.\n'\
           'Example: /poll Snorlax 13:30 Park Sint-Niklaas\n\n'\
           \
-          '/pollexcl <pokemon> <data> <time> <location>\n'\
+          '/pollexcl <pokemon> <date> <time> <location>\n'\
           'Starts a new exclusive raid poll.\n'\
           'Example: /pollexcl Mewtwo 30/10 19:00 Park Sint-Niklaas\n\n'
 
