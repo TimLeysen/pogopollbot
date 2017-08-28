@@ -69,8 +69,8 @@ class Voters:
 class RaidPoll(Poll):
     # The vote count of the last option is not visualized!
     # This options is used to unsubscribe.
-    options = [u'\U00002705' + ' ' + _('Subscribe'), # white heavy check mark
-               u'\U0000274C' + ' ' + _('Unsubscribe')] # cross mark
+    options = [_('Subscribe'), _('Unsubscribe')]
+    option_emojis = [u'\U00002705', None] # # white heavy check mark
     show_names = [True, False]
     
     def reply_markup(self):
@@ -117,13 +117,17 @@ class RaidPoll(Poll):
             msg += '{}: {}\n\n'.format(_('Closure reason'), self.closed_reason)
         
         for i in range(0, len(self.all_voters)):
+            emoji = RaidPoll.option_emojis[i]
+            if emoji:
+                msg += emoji + ' '
             voters = self.all_voters[i]
+
             msg += '<b>{}</b> [{}]\n'.format(RaidPoll.options[i], voters.total_count())
             if RaidPoll.show_names[i]:
                 for voter in voters.voters:
                     prefix = '[Lvl {}]'.format(str(voter.level).rjust(2, ' ') if voter.level>0 else '??')
                     suffix = '({})'.format(voter.count) if voter.count > 1 else ''
-                    msg += '  {} {} {}\n'.format(prefix, voter.name, suffix)
+                    msg += '    {} {} {}\n'.format(prefix, voter.name, suffix)
             msg += '\n'
 
         msg += '{} {}\n'.format(_('Poll created by'), self.creator)
