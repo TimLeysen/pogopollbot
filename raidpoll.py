@@ -74,6 +74,13 @@ class RaidPoll(Poll):
                      _('Unsubscribed')]
     show_names = [True, False]
     
+    def __init__(self, pokemon, time : datetime, location, creator):
+        super().__init__(pokemon, time, location, creator)
+
+        self.time_poll_id = None
+
+        self.all_voters = [Voters()]
+
     def reply_markup(self):
         if self.closed or self.deleted or self.finished:
             return InlineKeyboardMarkup([])
@@ -82,13 +89,6 @@ class RaidPoll(Poll):
         for i in range(0, len(RaidPoll.options)):
             row.append(InlineKeyboardButton(RaidPoll.options[i], callback_data=str(i)))
         return InlineKeyboardMarkup([row])
-
-    def __init__(self, pokemon, time : datetime, location, creator):
-        super().__init__(pokemon, time, location, creator)
-
-        self.time_poll_id = None
-
-        self.all_voters = [Voters()]
 
     def message(self):
         # disabled: image is too big on phones and we can't change the preview size
