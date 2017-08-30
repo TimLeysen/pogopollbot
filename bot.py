@@ -15,6 +15,7 @@ import logging
 import os
 import pickle
 import random
+import threading
 import time
 
 from telegram import CallbackQuery, Chat, ChatMember
@@ -22,6 +23,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError)
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
+from telegram.ext.dispatcher import run_async
 import zope.event
 
 import config
@@ -160,6 +162,11 @@ def __delete_poll_message(poll):
     bot.delete_message(chat_id = poll.chat_id, message_id=poll.message_id)
     del[polls[poll.id]]
 
+def start_on_timer(seconds, f, args):
+    threading.Timer(seconds, f, args).start()
+
+
+
 """
 Command argument parsing
 """
@@ -286,26 +293,25 @@ def __create_poll(pokemon, dt : datetime, location, creator, auto_close = True, 
     send_message(msg)
 
     if auto_close:
-        dispatcher.run_async(close_poll_on_timer, *(poll.id, False))
+        close_poll_on_timer(poll.id)
     if auto_delete:
-        dispatcher.run_async(delete_poll_on_timer, *(poll.id, ))
+        delete_poll_on_timer(poll.id)
     
     # dispatcher.run_async(eastereggs.check_poll_count, *(poll.global_id))
     
     return poll
 
+@run_async
 def close_poll_on_timer(poll_id, silent=False):
     poll = polls[poll_id]
 
     if poll.end_time > datetime.now():
         delta = poll.end_time - datetime.now()
-        time.sleep(delta.seconds)
-    # FIXME!
-    else: # test poll or poll with wrong time or too many worker threads busy and this function is called way too late!
+    else:
         logging.warning('close_poll_on_timer: poll end time is earlier than now. '\
                         'Closing poll anyway. {}'.format(poll.description()))
 
-    __close_poll(poll_id, reason=_('time expired'), update=None, silent=silent)
+    start_on_timer(delta.seconds, __close_poll, [poll_id, _('time expired'), None, silent])
 
 def parse_args_close_poll(update, args):
     if len(args) < 1:
@@ -382,20 +388,20 @@ def delete_all_polls(bot, update):
     send_message(msg)
 
 
+@run_async
 def delete_poll_on_timer(poll_id):
     poll = polls[poll_id]
     delta = timedelta(hours=1)
     if (poll.end_time + delta) > datetime.now():
         delta = poll.end_time + delta - datetime.now()
-        time.sleep(delta.seconds)    
     else: # test poll or poll with wrong time or too many worker threads busy and this function is called way too late!
         logging.warning('delete_poll_on_timer: poll end time is earlier than now. '\
                         'Deleting poll anyway. {}'.format(poll.description()))
 
-    __delete_poll(poll_id)
+    start_on_timer(delta.seconds, __delete_poll, [poll_id])
 
 
-# TODO: almost the same code as close_poll    
+# TODO: almost the same code as close_poll
 def parse_args_delete_poll(update, args):
     if len(args) < 1:
         msg = 'Incorrect format. Usage: /delete <id> (<reason>). For example: /delete 0, /delete 0 Duplicate poll'
