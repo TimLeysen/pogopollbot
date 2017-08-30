@@ -297,7 +297,7 @@ def __create_poll(pokemon, dt : datetime, location, creator, auto_close = True, 
     if auto_delete:
         delete_poll_on_timer(poll.id)
     
-    # dispatcher.run_async(eastereggs.check_poll_count, *(poll.global_id))
+    dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
     
     return poll
 
