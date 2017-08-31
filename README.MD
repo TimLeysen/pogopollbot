@@ -32,6 +32,8 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 ## Configuring PoGoPollBot
 
 1. Open config.py again in a text editor.
+   In the next steps you will create the channels and group chats that you will use.
+   Their chat ids will have to be entered in the 'if not test_version' section.
    
 2. Create a new telegram channel (not a group) and add your bot to it as an admin.
    This is the channel where raid polls will be posted.
@@ -61,6 +63,11 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 
 7. Save config.py and rerun bot.py from the command prompt or terminal window.
 
+8. If you make your own additions and want to test them in separate test channels:
+    Use BotFather to create a new test bot and paste your bot token in the test version section of config.py
+    Repeat steps 1-7 to create test channels and groups.
+    Set test_version = True in config.py.
+    You can use the command /test to generate a test raid poll.
 
 
 ## Using PoGoPollBot
@@ -68,25 +75,25 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 Type /help in BOT-CHAT for more information about the commands.
 
 The following commands can be used by all members of BOT-CHAT (power users):
-    /poll <raid-boss> <start-time> <location>
-    /pollexcl <raid-boss> <start-date> <start-time> <location>
-    /close <id>
-    /delete <id>
-    /list
-    /help
+   /poll <raid-boss> <start-time> <location>
+   /pollexcl <raid-boss> <start-date> <start-time> <location>
+   /close <id>
+   /delete <id>
+   /list
+   /help
 
 Note: dates and times use the European format, e.g. 24/8, 13:00
 
 
 The following commands are not listed in the help message can only be used by admins of BOT-CHAT:
-    /deleteall      deletes all poll messages
-    /save           saves the state to file
-    /load           loads the state from file
-    /quit           saves the state to file and shuts down the bot.
+   /deleteall      deletes all poll messages
+   /save           saves the state to file
+   /load           loads the state from file
+   /quit           saves the state to file and shuts down the bot.
 
 
 The following commands can only be used in PM (by anyone):
-    /setlevel <level>
+   /setlevel <level>
 
     
 If you need to restart the bot you should use the /quit command.
