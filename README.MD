@@ -32,6 +32,8 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 ## Configuring PoGoPollBot
 
 1. Open config.py again in a text editor.
+   In the next steps you will create the channels and group chats that you will use.
+   Their chat ids will have to be entered in the 'if not test_version' section.
    
 2. Create a new telegram channel (not a group) and add your bot to it as an admin.
    This is the channel where raid polls will be posted.
@@ -61,6 +63,11 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 
 7. Save config.py and rerun bot.py from the command prompt or terminal window.
 
+8. If you make your own additions and want to test them.
+    Use BotFather to create a new test bot.
+    Repeat steps 1-7 to create test channels and groups that only you will use.
+    Set test_version = True in config.py.
+    You can use the command /test to generate a test raid poll.
 
 
 ## Using PoGoPollBot
