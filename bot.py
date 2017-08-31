@@ -439,7 +439,7 @@ def delete_poll(bot, update, args):
 
 def __delete_poll(poll_id, reason=None, update=None):
     if not poll_exists(poll_id):
-        logging.info('Poll {} has already been deleted'.info(poll_id))
+        logging.info('Poll {} has already been deleted'.format(poll_id))
         return
 
     poll = polls[poll_id]
