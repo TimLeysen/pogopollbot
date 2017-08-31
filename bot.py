@@ -621,10 +621,7 @@ def __parse_args_report_raid(update, args): # returns raid boss : str, timer : s
     
 def report_raid(bot, update, args):
     log_command(update, report_raid.__name__, args)
-    # if update.message.chat_id != config.main_chat_id and not authorized(update):
-        # return
-    # TEMPORARILY FOR TESTING/ROLLOUT
-    if not authorized(update):
+    if update.message.chat_id != config.main_chat_id and not authorized(update):
         return
 
     try:
