@@ -68,25 +68,25 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 Type /help in BOT-CHAT for more information about the commands.
 
 The following commands can be used by all members of BOT-CHAT (power users):
-    /poll <raid-boss> <start-time> <location>
-    /pollexcl <raid-boss> <start-date> <start-time> <location>
-    /close <id>
-    /delete <id>
-    /list
-    /help
+   /poll <raid-boss> <start-time> <location>
+   /pollexcl <raid-boss> <start-date> <start-time> <location>
+   /close <id>
+   /delete <id>
+   /list
+   /help
 
 Note: dates and times use the European format, e.g. 24/8, 13:00
 
 
 The following commands are not listed in the help message can only be used by admins of BOT-CHAT:
-    /deleteall      deletes all poll messages
-    /save           saves the state to file
-    /load           loads the state from file
-    /quit           saves the state to file and shuts down the bot.
+   /deleteall      deletes all poll messages
+   /save           saves the state to file
+   /load           loads the state from file
+   /quit           saves the state to file and shuts down the bot.
 
 
 The following commands can only be used in PM (by anyone):
-    /setlevel <level>
+   /setlevel <level>
 
     
 If you need to restart the bot you should use the /quit command.
