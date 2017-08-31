@@ -19,16 +19,19 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 4. Go here https://core.telegram.org/bots#6-botfather and follow the instructions to create a new Telegram bot.
    In short, send /newbot to @BotFather on Telegram. Choose a name for your bot and write down the bot token that BotFather gives you.
    
-5. Open config.py in a text editor and replace <YOUR-BOT-TOKEN-HERE> with the bot token you have received from BotFather in step 4.
+5. Copy config.py from the config folder to the main folder.
 
-6. Run the bot.py from the command prompt or terminal window.
+6. Open config.py in the main folder in a text editor and replace <YOUR-BOT-TOKEN-HERE> with the bot token you have
+   received from BotFather in step 4.
+
+7. Run the bot.py from the command prompt.
    If successful it should print 'Ready to work!' to the window.
 
 
 
 ## Configuring PoGoPollBot
 
-1. Open config.py in a text editor.
+1. Open config.py again in a text editor.
    
 2. Create a new telegram channel (not a group) and add your bot to it as an admin.
    This is the channel where raid polls will be posted.
@@ -36,12 +39,17 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
    Type /chatid in the channel. The bot should reply with: 'This chat's id is <YOUR-CHAT-ID>'.
    Now replace <RAIDS-CHANNEL-ID> in config.py with the chat id you've just received.
    
-3. Create a new telegram group and add your bot to it as a member.
+3. Repeat step 2 for a channel where exclusive raids will be posted.
+   If you want exclusive raids to be posted in the same channel as normal raids, all you have to do is
+   replace <EXCLUSIVE-RAIDS-CHANNEL-ID> with the chat id of the channel that you created in step 2.
+
+4. Create a new telegram group and add your bot to it as a member.
    This is the group from which people will be able to send commands to the bot.
    Type /chatid again and replace <BOT-CHAT-ID> in config.py with the correct chat id.
    
-4. Create a new telegram (super)group and add your bot to it as a member.
-   This is the main chat where the bot will notifiy when someone has started, closed or deleted a poll. 
+5. Create a new telegram group and add your bot to it as a member.
+   This is the main chat where the bot will notifiy when someone has started, closed or deleted a poll.
+   If your group contains a lot of members you can upgrade it to a supergroup if you wish.
    Type /chatid again and replace <MAIN-CHAT-ID> in config.py with the correct chat id.
 
 5. Set enable_raid_command = True if you want normal users to be able to report a raid from the main chat.
@@ -60,13 +68,16 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 Type /help in BOT-CHAT for more information about the commands.
 
 The following commands can be used by all members of BOT-CHAT (power users):
-    /start <raid-boss> <start-time> <location>
+    /poll <raid-boss> <start-time> <location>
+    /pollexcl <raid-boss> <start-date> <start-time> <location>
     /close <id>
     /delete <id>
     /list
     /help
 
-    
+Note: dates and times use the European format, e.g. 24/8, 13:00
+
+
 The following commands are not listed in the help message can only be used by admins of BOT-CHAT:
     /deleteall      deletes all poll messages
     /save           saves the state to file
@@ -76,10 +87,11 @@ The following commands are not listed in the help message can only be used by ad
 
 The following commands can only be used in PM (by anyone):
     /setlevel <level>
+
     
 If you need to restart the bot you should use the /quit command.
 This will save all the information about the current polls to a file before stopping the bot.
-This file is automatically loaded on startup so users can continue voting on the existing polls.
+This file is automatically loaded on startup so users can continue voting on current polls.
 
 
 
