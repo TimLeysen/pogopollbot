@@ -76,7 +76,7 @@ Type /help in BOT-CHAT for more information about the commands.
 
 The following commands can be used by all members of BOT-CHAT (power users):
    /poll <raid-boss> <start-time> <location>
-   /pollexcl <raid-boss> <start-date> <start-time> <location>
+   /pollex <raid-boss> <start-date> <start-time> <location>
    /close <id>
    /delete <id>
    /list

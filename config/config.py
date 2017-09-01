@@ -24,7 +24,6 @@ else:
 
 
 enable_raid_command = True
-enable_exclusive_polls = True
 enable_translations = False
 
 
