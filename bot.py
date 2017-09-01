@@ -713,10 +713,10 @@ def test(bot, update):
     timer = '{}:{}'.format(h, str(m).zfill(2))
     # report_raid(bot, update, [pokemon, timer, 'TEST'])
 
-def testexcl(bot, update):
+def testex(bot, update):
     log_command(update, test.__name__)
 
-    pokemon = random.choice(list(pokedex.exclusive_raid_bosses))
+    pokemon = random.choice(list(pokedex.raid_bosses.keys()))
     hours = random.randrange(24, 72)
     dt = datetime.now() +timedelta(hours=hours)
     d = datetime.strftime(dt, '%d/%m')
@@ -962,7 +962,7 @@ dispatcher.add_handler(CommandHandler('load', load_state))
 dispatcher.add_handler(CommandHandler('quit', quit))
 if config.test_version:
     dispatcher.add_handler(CommandHandler('test', test))
-    dispatcher.add_handler(CommandHandler('testexcl', testexcl))
+    dispatcher.add_handler(CommandHandler('testex', testex))
 
 # UNKNOWN COMMANDS
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
