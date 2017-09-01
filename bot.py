@@ -28,7 +28,7 @@ import zope.event
 
 import config
 import database
-import eastereggs
+# import eastereggs
 import pokedex
 from poll import Poll
 from raidpoll import RaidPoll
@@ -297,7 +297,7 @@ def __create_poll(pokemon, dt : datetime, location, creator, exclusive, auto_clo
     if auto_delete:
         delete_poll_on_timer(poll.id)
     
-    dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
+    # dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
     
     return poll
 
