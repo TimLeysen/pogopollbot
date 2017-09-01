@@ -15,7 +15,7 @@ class Poll(metaclass=ABCMeta):
     deleted_suffix = ' <b>[{}]</b>'.format(_('DELETED'))
     finished_suffix = ' <b>[{}]</b>'.format(_('FINISHED'))
 
-    def __init__(self, pokemon, end_time : datetime, location, creator):
+    def __init__(self, pokemon, end_time : datetime, location, creator, exclusive=False):
         self.global_id = next(self.id_generator)
         self.id = (self.global_id-1)%100 +1
         
@@ -25,6 +25,7 @@ class Poll(metaclass=ABCMeta):
         self.end_time = end_time
         self.location = location
         self.creator = creator
+        self.exclusive = exclusive
 
         self.closed = False
         self.closed_reason = None
@@ -32,8 +33,7 @@ class Poll(metaclass=ABCMeta):
         self.deleted_reason = None
         self.finished = False
 
-
-        if self.is_exclusive():
+        if self.exclusive:
             self.channel_name = config.exclusive_raids_channel_id
         else:
             self.channel_name = config.raids_channel_id
@@ -62,7 +62,7 @@ class Poll(metaclass=ABCMeta):
         return suffix
 
     def time_string(self):
-        if self.is_exclusive():
+        if self.exclusive:
             return to_string(self.end_time)
         return to_time_string(self.end_time)
         
@@ -76,9 +76,6 @@ class Poll(metaclass=ABCMeta):
         
     def set_finished(self):
         self.finished = True
-
-    def is_exclusive(self):
-        return pokedex.is_exclusive_raid_boss(self.pokemon)
 
     @abstractmethod    
     def reply_markup(self):

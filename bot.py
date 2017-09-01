@@ -247,7 +247,7 @@ def start_poll(bot, update, args):
 
     dt = __add_date_to_time(t)
     creator = update.message.from_user.name
-    __create_poll(pokemon, dt, location, creator)
+    __create_poll(pokemon, dt, location, creator, exclusive=False)
 
 def start_exclusive_poll(bot, update, args):
     log_command(update, start_poll.__name__, args)
@@ -273,10 +273,10 @@ def start_exclusive_poll(bot, update, args):
     creator = update.message.from_user.name
     # Don't delete exclusive polls. We might need the information later
     # FIXME: Don't close them either until we fix those long sleeps...
-    __create_poll(pokemon, dt, location, creator, auto_close = False, auto_delete = False)
+    __create_poll(pokemon, dt, location, creator, exclusive=True, auto_close = False, auto_delete = False)
 
-def __create_poll(pokemon, dt : datetime, location, creator, auto_close = True, auto_delete = True):
-    poll = RaidPoll(pokemon, dt, location, creator)
+def __create_poll(pokemon, dt : datetime, location, creator, exclusive, auto_close = True, auto_delete = True):
+    poll = RaidPoll(pokemon, dt, location, creator, exclusive)
 
     try:
         __post_poll(poll)
@@ -287,8 +287,8 @@ def __create_poll(pokemon, dt : datetime, location, creator, auto_close = True, 
     
     polls[poll.id] = poll
 
-    suffix = 'an exclusive' if poll.is_exclusive() else 'a'
-    msg = '{} created {} raid poll: {}.\n'.format(creator, suffix, poll.description())
+    prefix = 'an exclusive' if poll.exclusive else 'a'
+    msg = '{} created {} raid poll: {}.\n'.format(creator, prefix, poll.description())
     msg += 'You can subscribe in {}'.format(poll.channel_name)
     send_message(msg)
 
@@ -618,7 +618,7 @@ def __parse_args_report_raid(update, args): # returns raid boss : str, timer : s
     dt = datetime.now() + timer
     return pokemon, dt, location
 
-    
+
 def report_raid(bot, update, args):
     log_command(update, report_raid.__name__, args)
     if update.message.chat_id != config.main_chat_id and not authorized(update):
@@ -909,7 +909,7 @@ def HandleVoteCountReachedEvent(event):
     t = datetime.strptime(event.start_time, '%H:%M').time()
     time = datetime.combine(d, t)
     creator = bot.username
-    poll = __create_poll(time_poll.pokemon, time, time_poll.location, creator)
+    poll = __create_poll(time_poll.pokemon, time, time_poll.location, creator, exclusive=False)
     
     poll.time_poll_id = time_poll.id
 

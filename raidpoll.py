@@ -74,8 +74,8 @@ class RaidPoll(Poll):
                      _('Unsubscribed')]
     show_names = [True, False]
     
-    def __init__(self, pokemon, time : datetime, location, creator):
-        super().__init__(pokemon, time, location, creator)
+    def __init__(self, pokemon, time : datetime, location, creator, exclusive):
+        super().__init__(pokemon, time, location, creator, exclusive)
 
         self.time_poll_id = None
 
