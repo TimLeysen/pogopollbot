@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-08-28 22:17+0200\n"
-"PO-Revision-Date: 2017-08-28 22:18+0200\n"
+"POT-Creation-Date: 2017-09-01 16:56+0200\n"
+"PO-Revision-Date: 2017-09-01 16:56+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl_BE\n"
@@ -17,11 +17,11 @@ msgstr ""
 "X-Generator: Poedit 2.0.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: bot.py:308
+#: bot.py:317
 msgid "time expired"
 msgstr "tijd verstreken"
 
-#: bot.py:860
+#: bot.py:905
 msgid ""
 "Welcome {}!\n"
 "In this chat you can create a raid poll by typing e.g. /poll Snorlax 14:00 "
@@ -31,7 +31,7 @@ msgid ""
 "number of the poll by typing /list.\n"
 "Please discuss a proper starting time in the main chat before creating a new "
 "poll!\n"
-"Type /help for more information."
+"Type /help in a private message to me for more information."
 msgstr ""
 "Welkom {}!\n"
 "In deze chat kan je een raid poll aanmaken door bvb. /poll Snorlax 14:00 "
@@ -41,7 +41,7 @@ msgstr ""
 "van de poll kan je zien door /list te typen.\n"
 "Pols eerst even in de chat groep voor een start uur voordat je een nieuwe "
 "poll aanmaakt!\n"
-"Typ /help voor meer informatie."
+"Typ /help in een privébericht naar mij voor meer informatie."
 
 #: poll.py:14 poll.py:61
 msgid "CLOSED"

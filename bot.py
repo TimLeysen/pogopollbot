@@ -551,26 +551,22 @@ def list_bosses(bot, update, args):
     
 def help(bot, update):
     log_command(update, help.__name__)
-    is_input_chat = update.message.chat_id == config.bot_chat_id
-    if not (private_chat(update) or is_input_chat):
+    if not private_chat(update):
         return
 
     msg = '*POWER USER COMMANDS*:\n'\
-          '/help\n'\
-          'Shows this message\n\n'\
-          \
           '/poll <pokemon> <time> <location>\n'\
           'Starts a new raid poll.\n'\
-          'Example: /poll Snorlax 13:30 Park Sint-Niklaas\n\n'\
+          'Example: /poll Snorlax 13:30 Central station\n\n'\
           \
           '/pollex <pokemon> <date> <time> <location>\n'\
           'Starts a new exclusive raid poll.\n'\
-          'Example: /pollex Mewtwo 30/10 19:00 Park Sint-Niklaas\n\n'\
+          'Example: /pollex Mewtwo 30/10 19:00 Central Station\n\n'\
           \
           '/close <id> (<reason>)\n'\
           'Closes the poll with id <id>. You can add a reason (optional).\n'\
           'You can see the poll ids by typing /list.\n'\
-          'Example: /close 8 not enough players\n\n'\
+          'Example: /close 8 starting time changed\n\n'\
           \
           '/delete <id> (<reason>)\n'\
           'Deletes the poll with id <id>. You can add a reason (optional).\n'\
@@ -578,19 +574,22 @@ def help(bot, update):
           'Example: /delete 8 wrong pokemon name\n\n'\
           \
           '/list\n'\
-          'Lists all polls. Shows each poll\'s id and description.\n\n'\
+          'Lists all polls. Shows each poll\'s id and description.\n\n\n'\
 
     if settings.enable_raid_command:
         msg += '*GENERAL USER COMMANDS (CHAT)*:\n'\
                '/raid <pokemon> <timer> <location>\n'\
                'Starts a new time poll for a raid where users can vote for the starting time.\n'\
-               'Example: /raid Snorlax 1:45 Park Sint-Niklaas\n\n'
+               'Example: /raid Snorlax 1:45 Central Station\n\n\n'
 
     msg += \
           '*GENERAL USER COMMANDS (PM)*:\n'\
           '/setlevel <level>\n'\
           'Sets your trainer level to <level>.\n'\
           'Example: /setlevel 40\n\n'\
+          \
+          '/help\n'\
+          'Shows this message\n\n\n'\
           \
           '*ADMIN COMMANDS*:\n'\
           '/deleteall\n'\
@@ -908,7 +907,7 @@ def member_joined(bot, update):
                 'Polls are automatically closed when the start time elapses.\n'
                 'You can also manually close a poll by typing e.g. /close 8 You can see the number of the poll by typing /list.\n'
                 'Please discuss a proper starting time in the main chat before creating a new poll!\n'
-                'Type /help for more information.'
+                'Type /help in a private message to me for more information.'
                 ).format(','.join(names))
         send_command_message(update, msg)
     
