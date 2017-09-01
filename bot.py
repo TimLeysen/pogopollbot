@@ -699,29 +699,36 @@ def chat_id(bot, update):
     msg = 'This chat\'s id is {}'.format(update.message.chat_id)
     send_command_message(update, msg)
 
-def test(bot, update):
-    log_command(update, test.__name__)
+def __random_pokemon():
+    return random.choice(list(pokedex.raid_bosses.keys()))
 
-    pokemon = random.choice(list(pokedex.raid_bosses.keys()))
+def testpoll(bot, update):
+    log_command(update, testpoll.__name__)
+
+    pokemon = __random_pokemon()
     start_time = datetime.strftime(datetime.now() + timedelta(minutes=10), '%H:%M')
     start_poll(bot, update, [pokemon, start_time, 'TEST'])
     # start_poll(bot, update, ['moltres', '13:00', 'TEST'])
     # start_poll(bot, update, ['snorlax', '13:00', 'TEST'])
-    
-    h = random.randrange(1, 2)
-    m = random.randrange(0, 60)
-    timer = '{}:{}'.format(h, str(m).zfill(2))
-    # report_raid(bot, update, [pokemon, timer, 'TEST'])
 
-def testex(bot, update):
-    log_command(update, test.__name__)
+def testpollex(bot, update):
+    log_command(update, testpollex.__name__)
 
-    pokemon = random.choice(list(pokedex.raid_bosses.keys()))
+    pokemon = __random_pokemon()
     hours = random.randrange(24, 72)
     dt = datetime.now() +timedelta(hours=hours)
     d = datetime.strftime(dt, '%d/%m')
     t = datetime.strftime(dt, '%H:%M')
     start_exclusive_poll(bot, update, [pokemon, d, t, 'TEST'])
+
+def testraid(bot, update):
+    log_command(update, testraid.__name__)
+
+    pokemon = __random_pokemon()
+    h = random.randrange(1, 2)
+    m = random.randrange(0, 60)
+    timer = '{}:{}'.format(h, str(m).zfill(2))
+    report_raid(bot, update, [pokemon, timer, 'TEST'])
 
 data_file = 'data.pickle'
 def save_state(bot, update):
@@ -961,8 +968,9 @@ dispatcher.add_handler(CommandHandler('save', save_state))
 dispatcher.add_handler(CommandHandler('load', load_state))
 dispatcher.add_handler(CommandHandler('quit', quit))
 if config.test_version:
-    dispatcher.add_handler(CommandHandler('test', test))
-    dispatcher.add_handler(CommandHandler('testex', testex))
+    dispatcher.add_handler(CommandHandler('testpoll', testpoll))
+    dispatcher.add_handler(CommandHandler('testpollex', testpollex))
+    dispatcher.add_handler(CommandHandler('testraid', testraid))
 
 # UNKNOWN COMMANDS
 dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
