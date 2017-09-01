@@ -550,7 +550,7 @@ def list_bosses(bot, update, args):
     send_command_message(update, msg)
     
 def help(bot, update):
-    log_command(update, help.__name__)
+    # log_command(update, help.__name__)
     if not private_chat(update):
         return
 
