@@ -23,7 +23,6 @@ else:
     bot_token = '<BOT-TOKEN>'
 
 
-enable_raid_command = True
 enable_translations = False
 
 

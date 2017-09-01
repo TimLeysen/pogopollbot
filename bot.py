@@ -48,6 +48,12 @@ polls = {}
 # level_5_bosses = ['Moltres','Zapdos','Articuno','Lugia','Ho-Oh','Mewtwo']
 # allowed_bosses_to_report = sorted(level_3_bosses + level_4_bosses + level_5_bosses)
 
+class Settings:
+    def __init__(self):
+        self.enable_raid_command = False
+
+settings = Settings()
+
 """
 Helper functions
 """
@@ -69,7 +75,8 @@ def send_bot_chat_message(msg):
 # This is mainly for giving information when using a command wrong.
 def send_command_message(update, msg):
     logging.info('send command message: {}'.format(msg))
-    bot.send_message(chat_id=update.message.chat_id, text=msg, disable_web_page_preview=True)
+    bot.send_message(chat_id=update.message.chat_id, text=msg,
+                     disable_web_page_preview=True, parse_mode='markdown')
 
 # Test if a user is allowed to send commands to the bot
 def authorized(update):
@@ -548,7 +555,8 @@ def help(bot, update):
     if not (private_chat(update) or is_input_chat):
         return
 
-    msg = '/help\n'\
+    msg = '*POWER USER COMMANDS*:\n'\
+          '/help\n'\
           'Shows this message\n\n'\
           \
           '/poll <pokemon> <time> <location>\n'\
@@ -557,15 +565,8 @@ def help(bot, update):
           \
           '/pollex <pokemon> <date> <time> <location>\n'\
           'Starts a new exclusive raid poll.\n'\
-          'Example: /pollex Mewtwo 30/10 19:00 Park Sint-Niklaas\n\n'
-
-    if config.enable_raid_command:
-        msg += \
-          '/raid <pokemon> <timer> <location>\n'\
-          'Starts a new time poll for a raid where users can vote for the starting time.\n'\
-          'Example: /raid Snorlax 1:45 Park Sint-Niklaas\n\n'
-          
-    msg += \
+          'Example: /pollex Mewtwo 30/10 19:00 Park Sint-Niklaas\n\n'\
+          \
           '/close <id> (<reason>)\n'\
           'Closes the poll with id <id>. You can add a reason (optional).\n'\
           'You can see the poll ids by typing /list.\n'\
@@ -578,13 +579,28 @@ def help(bot, update):
           \
           '/list\n'\
           'Lists all polls. Shows each poll\'s id and description.\n\n'\
-          \
+
+    if settings.enable_raid_command:
+        msg += '*GENERAL USER COMMANDS (CHAT)*:\n'\
+               '/raid <pokemon> <timer> <location>\n'\
+               'Starts a new time poll for a raid where users can vote for the starting time.\n'\
+               'Example: /raid Snorlax 1:45 Park Sint-Niklaas\n\n'
+
+    msg += \
+          '*GENERAL USER COMMANDS (PM)*:\n'\
           '/setlevel <level>\n'\
-          'Sets your trainer level to <level>. Only usable via private message.\n'\
+          'Sets your trainer level to <level>.\n'\
           'Example: /setlevel 40\n\n'\
           \
+          '*ADMIN COMMANDS*:\n'\
           '/deleteall\n'\
-          'Deletes all polls. Only usable by admins.'
+          'Deletes all polls.\n\n'\
+          \
+          '/enableraidcommand\n'\
+          'Enables the /raid command for general users.\n\n'\
+          \
+          '/disableraidcommand\n'\
+          'Disables the /raid command for general users.'
     send_command_message(update, msg)
 
 """
@@ -618,6 +634,10 @@ def __parse_args_report_raid(update, args): # returns raid boss : str, timer : s
 def report_raid(bot, update, args):
     log_command(update, report_raid.__name__, args)
     if update.message.chat_id != config.main_chat_id and not authorized(update):
+        return
+
+    if not settings.enable_raid_command:
+        send_command_message(update, 'The raid command is currently disabled.')
         return
 
     try:
@@ -740,8 +760,9 @@ def save_state(bot, update):
 def __save_state():
     try:
         with open(data_file, 'wb') as f:
-            data = {'id_generator' : Poll.id_generator,                    
-                    'polls' : polls}
+            data = {'id_generator' : Poll.id_generator,
+                    'polls' : polls,
+                    'enable_raid_command' : settings.enable_raid_command}
             pickle.dump(data, f)
         logging.info('Saved state to file')
         return True
@@ -749,7 +770,7 @@ def __save_state():
         logging.error('Failed to save state to file')
         logging.exception(e)    
         return False
-        
+
 def load_state(bot, update):
     log_command(update, load_state.__name__)
     if not admin(update):
@@ -765,6 +786,7 @@ def __load_state():
             data = pickle.load(f)
             Poll.id_generator = data['id_generator']
             polls = data['polls']
+            settings.enable_raid_command = data['enable_raid_command']
         logging.info('Loaded state from file')
         return True
     except Exception as e:
@@ -781,8 +803,26 @@ def quit(bot, update):
     send_command_message(update, 'Shutting down...')
     os._exit(0)
 
-    
-    
+def enable_raid_command(bot, update):
+    log_command(update, enable_raid_command.__name__)
+    if not admin(update):
+        return
+
+    settings.enable_raid_command = True
+    __save_state()
+    send_command_message(update, 'Raid command enabled. Users can now report a raid by typing /raid <pokemon> <timer> <location>.')
+
+def disable_raid_command(bot, update):
+    log_command(update, disable_raid_command.__name__)
+    if not admin(update):
+        return
+
+    settings.enable_raid_command = False
+    __save_state()
+    send_command_message(update, 'Raid command disabled.')
+
+
+
 """
 UNKNOWN COMMANDS
 """
@@ -951,9 +991,8 @@ dispatcher.add_handler(CommandHandler('list', list_polls))
 # dispatcher.add_handler(CommandHandler('listbosses', list_bosses, pass_args=True))
 dispatcher.add_handler(CommandHandler('help', help))
 
-# GENERAL USER COMMANDS
-if config.enable_raid_command:
-    dispatcher.add_handler(CommandHandler('raid', report_raid, pass_args=True))
+# GENERAL USER COMMANDS (CHAT)
+dispatcher.add_handler(CommandHandler('raid', report_raid, pass_args=True))
 
 # GENERAL USER COMMANDS (PM)
 dispatcher.add_handler(CommandHandler('setlevel', set_level, pass_args=True))
@@ -963,6 +1002,8 @@ dispatcher.add_handler(CommandHandler('chatid', chat_id))
 dispatcher.add_handler(CommandHandler('save', save_state))
 dispatcher.add_handler(CommandHandler('load', load_state))
 dispatcher.add_handler(CommandHandler('quit', quit))
+dispatcher.add_handler(CommandHandler('enableraidcommand', enable_raid_command))
+dispatcher.add_handler(CommandHandler('disableraidcommand', disable_raid_command))
 if config.test_version:
     dispatcher.add_handler(CommandHandler('testpoll', testpoll))
     dispatcher.add_handler(CommandHandler('testpollex', testpollex))
