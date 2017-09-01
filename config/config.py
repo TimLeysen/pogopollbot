@@ -2,6 +2,7 @@ import gettext
 
 test_version = False
 
+# CHAT/CHANNEL IDS
 # Use /chatid to get the chat id
 if not test_version:
     # channel where raid polls are broadcast
@@ -10,7 +11,7 @@ if not test_version:
     exclusive_raids_channel_id = <EXCLUSIVE-RAIDS-CHANNEL-ID>
     # main chat where create, close and delete commands are posted
     main_chat_id = <MAIN-CHAT-ID>
-    # bot chat where users can send commands to the bot
+    # bot chat where power users can send commands to the bot
     bot_chat_id = <BOT-CHAT-ID>
     
     bot_token = '<BOT-TOKEN>'
@@ -23,11 +24,11 @@ else:
     bot_token = '<BOT-TOKEN>'
 
 
-enable_translations = False
-
 
 # TRANSLATIONS
 # See README.md for more information on how to add translations
+enable_translations = False
+
 if enable_translations:
     es = gettext.translation('pollbot', localedir='locale', languages=['nl'])
     es.install()
