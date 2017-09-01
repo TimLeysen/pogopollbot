@@ -798,7 +798,7 @@ def quit(bot, update):
     if not admin(update):
         return
     
-    save_state(bot, update)
+    __save_state()
     send_command_message(update, 'Shutting down...')
     os._exit(0)
 
