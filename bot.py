@@ -271,11 +271,9 @@ def start_exclusive_poll(bot, update, args):
     dt = datetime.combine(d, t)
     print(dt)
     creator = update.message.from_user.name
-    # Don't delete exclusive polls. We might need the information later
-    # FIXME: Don't close them either until we fix those long sleeps...
-    __create_poll(pokemon, dt, location, creator, exclusive=True, auto_close = False, auto_delete = False)
+    __create_poll(pokemon, dt, location, creator, exclusive=True)
 
-def __create_poll(pokemon, dt : datetime, location, creator, exclusive, auto_close = True, auto_delete = True):
+def __create_poll(pokemon, dt : datetime, location, creator, exclusive):
     poll = RaidPoll(pokemon, dt, location, creator, exclusive)
 
     try:
@@ -292,10 +290,8 @@ def __create_poll(pokemon, dt : datetime, location, creator, exclusive, auto_clo
     msg += 'You can subscribe in {}'.format(poll.channel_name)
     send_message(msg)
 
-    if auto_close:
-        close_poll_on_timer(poll.id)
-    if auto_delete:
-        delete_poll_on_timer(poll.id)
+    close_poll_on_timer(poll.id)
+    delete_poll_on_timer(poll.id)
     
     # dispatcher.run_async(eastereggs.check_poll_count, *(bot, poll.global_id))
     
