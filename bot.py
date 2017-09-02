@@ -551,7 +551,7 @@ def list_bosses(bot, update, args):
     
 def help(bot, update):
     # log_command(update, help.__name__)
-    if not private_chat(update):
+    if not (private_chat(update) or authorized(update)):
         return
 
     msg = '*POWER USER COMMANDS*:\n'\
@@ -907,7 +907,7 @@ def member_joined(bot, update):
                 'Polls are automatically closed when the start time elapses.\n'
                 'You can also manually close a poll by typing e.g. /close 8 You can see the number of the poll by typing /list.\n'
                 'Please discuss a proper starting time in the main chat before creating a new poll!\n'
-                'Type /help in a private message to me for more information.'
+                'Type /help here or in a private message to me for more information.'
                 ).format(','.join(names))
         send_command_message(update, msg)
     

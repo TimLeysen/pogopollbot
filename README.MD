@@ -66,33 +66,68 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
     You can use the command /test to generate a test raid poll.
 
 
+
 ## Using PoGoPollBot
 
-Type /help in BOT-CHAT for more information about the commands.
+Type /help in BOT-CHAT or in PM for more information about the commands.
 
-The following commands can be used by all members of BOT-CHAT (power users):
-   /poll <raid-boss> <start-time> <location>
-   /pollex <raid-boss> <start-date> <start-time> <location>
-   /close <id>
-   /delete <id>
-   /list
-   /help
+### POWER USER COMMANDS:
+The following commands can be used in BOT-CHAT.
+/poll <pokemon> <time> <location>
+Starts a new raid poll.
+Example: /poll Snorlax 13:30 Central station
 
-Note: dates and times use the European format, e.g. 24/8, 13:00
+/pollex <pokemon> <date> <time> <location>
+Starts a new exclusive raid poll.
+Example: /pollex Mewtwo 30/10 19:00 Central Station
+
+/close <id> (<reason>)
+Closes the poll with id <id>. You can add a reason (optional).
+You can see the poll ids by typing /list.
+Example: /close 8 starting time changed
+
+/delete <id> (<reason>)
+Deletes the poll with id <id>. You can add a reason (optional).
+You can see the poll ids by typing /list.
+Example: /delete 8 wrong pokemon name
+
+/list
+Lists all polls. Shows each poll's id and description.
+
+/help
+Shows this message. Also works in PM.
 
 
-The following commands are not listed in the help message can only be used by admins of BOT-CHAT:
-   /deleteall      deletes all poll messages
-   /save           saves the state to file
-   /load           loads the state from file
-   /quit           saves the state to file and shuts down the bot.
+### GENERAL USER COMMANDS (CHAT):
+The following commands can be used in MAIN-CHAT or BOT-CHAT.
+/raid <pokemon> <timer> <location>
+Starts a new time poll for a raid where users can vote for the starting time.
+Example: /raid Snorlax 1:45 Central Station
 
 
-The following commands can only be used in PM (by anyone):
-   /setlevel <level>
+### GENERAL USER COMMANDS (PM):
+The following commands can only be used in PM.
+/setlevel <level>
+Sets your trainer level to <level>.
+Example: /setlevel 40
 
-    
-If you need to restart the bot you should use the /quit command.
+
+### ADMIN COMMANDS:
+The following commands can only be used in BOT-CHAT by admins.
+/deleteall
+Deletes all polls.
+
+/enableraidcommand
+Enables the /raid command for general users.
+
+/disableraidcommand
+Disables the /raid command for general users.
+
+/quit
+saves the state to file and shuts down the bot.
+
+
+Note: If you need to restart the bot you should use the /quit command.
 This will save all the information about the current polls to a file before stopping the bot.
 This file is automatically loaded on startup so users can continue voting on current polls.
 

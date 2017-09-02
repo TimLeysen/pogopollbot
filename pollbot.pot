@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2017-09-01 16:56+0200\n"
+"POT-Creation-Date: 2017-09-02 11:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgid ""
 "Polls are automatically closed when the start time elapses.\n"
 "You can also manually close a poll by typing e.g. /close 8 You can see the number of the poll by typing /list.\n"
 "Please discuss a proper starting time in the main chat before creating a new poll!\n"
-"Type /help in a private message to me for more information."
+"Type /help here or in a private message to me for more information."
 msgstr ""
 
 #: poll.py:14 poll.py:61
