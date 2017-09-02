@@ -6,7 +6,7 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 
 
 
-## Directions for installing and running the bot on your server:
+## Directions for installing and running the bot on your server
 
 1. Download and install Python 3.6 for your operating system from https://www.python.org/downloads/release/python-360/
 
@@ -19,12 +19,14 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 4. Go here https://core.telegram.org/bots#6-botfather and follow the instructions to create a new Telegram bot.
    In short, send /newbot to @BotFather on Telegram. Choose a name for your bot and write down the bot token that BotFather gives you.
    
-5. Copy config.py from the config folder to the main folder.
+5. Copy pollbot.db from the db folder to the main folder.
+   
+6. Copy config.py from the config folder to the main folder.
 
-6. Open config.py in the main folder in a text editor and replace <YOUR-BOT-TOKEN-HERE> with the bot token you have
+7. Open config.py in the main folder in a text editor and replace <YOUR-BOT-TOKEN-HERE> with the bot token you have
    received from BotFather in step 4.
 
-7. Run the bot.py from the command prompt.
+8. Run the bot.py from the command prompt.
    If successful it should print 'Ready to work!' to the window.
 
 
@@ -32,38 +34,32 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 ## Configuring PoGoPollBot
 
 1. Open config.py again in a text editor.
-   In the next steps you will create the channels and group chats that you will use.
+   In the next steps we will create the channels and group chats that you will use.
    Their chat ids will have to be entered in the 'if not test_version' section.
    
 2. Create a new telegram channel (not a group) and add your bot to it as an admin.
    This is the channel where raid polls will be posted.
-   Your bot's name is the one that you chose in step 4 with a @ prepended to it. E.g. @MyPoGoPollBot.
+   Your bot's name is the one that you chose in step 4 with @ prepended to it. E.g. @MyPoGoPollBot.
    Type /chatid in the channel. The bot should reply with: 'This chat's id is <YOUR-CHAT-ID>'.
    Now replace <RAIDS-CHANNEL-ID> in config.py with the chat id you've just received.
    
 3. Repeat step 2 for a channel where exclusive raids will be posted.
-   If you want exclusive raids to be posted in the same channel as normal raids, all you have to do is
-   replace <EXCLUSIVE-RAIDS-CHANNEL-ID> with the chat id of the channel that you created in step 2.
+   If you want exclusive raids to be posted in the same channel as normal raids, replace
+   <EXCLUSIVE-RAIDS-CHANNEL-ID> with the chat id of the channel that you created in step 2.
 
 4. Create a new telegram group and add your bot to it as a member.
    This is the group from which people will be able to send commands to the bot.
-   Type /chatid again and replace <BOT-CHAT-ID> in config.py with the correct chat id.
+   Type /chatid and replace <BOT-CHAT-ID> in config.py with the correct chat id.
    
 5. Create a new telegram group and add your bot to it as a member.
-   This is the main chat where the bot will notifiy when someone has started, closed or deleted a poll.
+   This is the main chat where the bot will notifiy when someone has started, closed or deleted a poll
+   and where users can report a raid.
    If your group contains a lot of members you can upgrade it to a supergroup if you wish.
-   Type /chatid again and replace <MAIN-CHAT-ID> in config.py with the correct chat id.
+   Type /chatid and replace <MAIN-CHAT-ID> in config.py with the correct chat id.
 
-5. Set enable_raid_command = True if you want normal users to be able to report a raid from the main chat.
-   When a raid is reported, a poll is created where users can vote for a start time.
-   If enough votes have been reached, a raid poll is created for that start time.
-   You can change the mimimum needed votes and the maximum amount of times in timepoll.py (min_votes, max_times)
+6. Save config.py and rerun bot.py from the command prompt or terminal window.
 
-6. Set enable_easter_eggs = True if you want to enable easter eggs. See eastereggs.py for what this does.
-
-7. Save config.py and rerun bot.py from the command prompt or terminal window.
-
-8. If you make your own additions and want to test them in separate test channels:
+7. If you make your own additions and want to test them in separate test channels:
     Use BotFather to create a new test bot and paste your bot token in the test version section of config.py
     Repeat steps 1-7 to create test channels and groups.
     Set test_version = True in config.py.
