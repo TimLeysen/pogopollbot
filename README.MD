@@ -145,7 +145,7 @@ If you want to translate the poll messages in the raids channel, follow these st
 3. Translate all the strings and click the save button.
    Change the filename to pollbot.po.
    Save the file to locale\<locale>\LC_MESSAGES where <locale> is the locale of your language, e.g. de for German, es for Spanish, etc.
-   
+
 4. Open config.py with a text editor.
    Change enable_translations = False to enable_translations = True
    Replace 'nl' in the following line by your locale:
