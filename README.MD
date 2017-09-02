@@ -1,6 +1,6 @@
 # PoGoPollBot
 
-A Telegram helper bot for organizing Pokemon Go raids.
+A Telegram bot for organizing Pokemon Go raids.
 
 PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the python-telegram-bot library.
 
