@@ -149,7 +149,7 @@ If you want to translate the poll messages in the raids channel, follow these st
 4. Open config.py with a text editor.
    Change enable_translations = False to enable_translations = True
    Replace 'nl' in the following line by your locale:
-       es = gettext.translation('pollbot', localedir='locale', languages=['nl'])
+      es = gettext.translation('pollbot', localedir='locale', languages=['nl'])
    
 5. Restart the bot.
 
