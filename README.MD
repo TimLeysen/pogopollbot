@@ -6,7 +6,7 @@ PoGoPollBot is a Telegram bot written in Python 3.6 using version 3.2 of the pyt
 
 
 
-## Directions for installing and running the bot on your server
+## Installing and running PoGoPollBot
 
 1. Download and install Python 3.6 for your operating system from https://www.python.org/downloads/release/python-360/
 
