@@ -36,7 +36,7 @@ class Poll(metaclass=ABCMeta):
 
     def __init__(self, pokemon, end_time : datetime, location, creator, exclusive=False):
         self.global_id = next(self.id_generator)
-        self.id = (self.global_id-1)%100 +1
+        self.id = (self.global_id-1)%1000 +1
         
         self.pokemon = pokemon
         # self.img_url = 'http://floatzel.net/pokemon/black-white/sprites/images/{0}.png'\
