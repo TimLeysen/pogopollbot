@@ -24,7 +24,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from common import from_string, to_string, to_time_string
 import config
-import pokedex
+from pokedex import Pokedex
 from poll import Poll
 
 
@@ -34,10 +34,11 @@ if not config.enable_translations:
 
 
 class Voter:
-    def __init__(self, id, name, level):
+    def __init__(self, id, name, level, remote_id = None):
         self.id = id
         self.name = name
         self.level = level
+        self.remote_id = remote_id
         self.count = 1
 
     def add_player(self, name, level):
@@ -57,6 +58,11 @@ class Voters:
             self.voters[idx].add_player(name, level)
         else:
             self.voters.append(Voter(id, name, level))
+
+    def add_remote(self, id, name, level, remote_id):
+        idx = self.__index_of(id)
+        if idx == -1:
+            self.voters.append(Voter(id, name, level, remote_id))
 
     def remove(self, id):
         idx = self.__index_of(id)
@@ -86,9 +92,9 @@ class Voters:
 
 
 class RaidPoll(Poll):
-    # The vote count of the last option is not visualized!
+    # The vote count of the unsubcribed option is not visualized!
     # This options is used to unsubscribe.
-    options = [_('Subscribe'), _('Unsubscribe')]
+    options = [_('Subscribe'), _('Invite'), _('Unsubscribe')]
     option_titles = ['{} {}'.format(u'\U00002705', _('Subscribed')), # white heavy check mark
                      _('Unsubscribed')]
     show_names = [True, False]
@@ -96,8 +102,8 @@ class RaidPoll(Poll):
     def __init__(self, pokemon, time : datetime, location, creator, exclusive):
         super().__init__(pokemon, time, location, creator, exclusive)
 
+        self.pokedex = Pokedex()
         self.time_poll_id = None
-
         self.all_voters = [Voters()]
 
     def reply_markup(self):
@@ -125,12 +131,8 @@ class RaidPoll(Poll):
             return msg
         
         msg += '\n\n'
-        weaknesses = []
-        try:
-            for weakness in pokedex.raid_bosses[self.pokemon.lower()]:
-                weaknesses.append('<b>{}</b>'.format(weakness) if weakness[-2:]=='x2' else weakness)
-        except:
-            pass
+        weaknesses = self.pokedex.get_distinct_weaknesses(self.pokedex.get_id(self.pokemon))
+        weaknesses = ['<b>{}</b>'.format(w) if w[-2:]=='x2' else w for w in weaknesses]
         msg += '{}: {}\n\n'.format(_('Weaknesses'), ', '.join(weaknesses))
         
         if self.closed and self.closed_reason:
@@ -141,26 +143,31 @@ class RaidPoll(Poll):
             msg += '<b>{}</b> [{}]\n'.format(RaidPoll.option_titles[i], voters.total_count())
             if RaidPoll.show_names[i]:
                 for voter in voters.voters:
-                    prefix = '[Lvl {}]'.format(str(voter.level).rjust(2, ' ') if voter.level>0 else '??')
-                    suffix = '({})'.format(voter.count) if voter.count > 1 else ''
-                    msg += '    {} {} {}\n'.format(prefix, voter.name, suffix)
+                    level_prefix = '[Lvl {}]'.format(str(voter.level).rjust(2, ' ') if voter.level>0 else '??')
+                    count_suffix = '({})'.format(voter.count) if voter.count > 1 else ''
+                    remote_suffix = '#{}'.format(voter.remote_id) if voter.remote_id is not None else ''
+                    msg += '    {} {} {}{}\n'.format(level_prefix, voter.name, count_suffix, remote_suffix)
             msg += '\n'
 
         msg += '{} {}\n'.format(_('Poll created by'), self.creator)
         msg += '#{}'.format(self.id_string())
         return msg
 
-    def add_vote(self, id, name, level, choice):
+    def add_vote(self, id, name, level, remote_id, choice):
         changed = False
         first_vote = not self.all_voters[0].exists(id)
 
         # clunky but whatever
-        if choice is 0: # I can come
+        if choice == 0: # I can come
             # Multiple votes will increase a voter's player count
             self.all_voters[0].add(id, name, level)
             changed = True
+
+        if choice == 1: # Invite
+            self.all_voters[0].add_remote(id, name, level, remote_id)
+            changed = True
         
-        if choice is 1: # I can't come (anymore)
+        if choice == 2: # I can't come (anymore)
             # don't care about these users so don't store anything
             if not first_vote:
                 self.all_voters[0].remove(id)

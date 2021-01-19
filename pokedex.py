@@ -52,6 +52,7 @@ class Pokedex:
         
         return sorted(result)
 
+    # get weaknesses as distinct strings with suffix x<count>
     def get_distinct_weaknesses(self, id : int):
         result = []
         counts = {}
@@ -90,7 +91,7 @@ class Pokedex:
     def get_types(self, id : int):
         if id in self.data.keys():
             return self.data[id]['types']
-        return None
+        return []
         
     def id_exists(self, id : int):
         return id in self.data.keys()
@@ -104,5 +105,8 @@ class Pokedex:
     def is_exclusive_raid_boss(self, name : str):
         return name.lower() in exclusive_raid_bosses
         
+    def capwords(s : str):
+        return '-'.join([x.capitalize() for x in s.split('-')])
+
     def sprite_url(self, name : str):
         return 'http://floatzel.net/pokemon/black-white/sprites/images/{0}.png'.format(get_id(name))

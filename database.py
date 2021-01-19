@@ -21,17 +21,17 @@ import sqlite3
 
 
 
-def set_level(id : int, name : str, level : int):
+def set_level(user_id : int, user_name : str, level : int):
     conn = sqlite3.connect('pollbot.db')
     c = conn.cursor()
     
     try:
-        if c.execute('select * from users where id=?', (id,)).fetchone():
+        if c.execute('select * from users where id=?', (user_id,)).fetchone():
             print('update')
-            c.execute('update users set name=?, level=? where id=?', (name, level, id))
+            c.execute('update users set name=?, level=? where id=?', (name, level, user_id))
         else:
             print('insert')
-            c.execute('insert into users values (?,?,?)', (id, name, level))
+            c.execute('insert into users values (?,?,?,?)', (user_id, name, level, ''))
 
         conn.commit()
     except sqlite3.Error as e:
@@ -39,12 +39,12 @@ def set_level(id : int, name : str, level : int):
         
     conn.close()
         
-def get_level(id : str):
+def get_level(user_id : int):
     conn = sqlite3.connect('pollbot.db')
     c = conn.cursor()
     
     try:
-        if c.execute('select level from users where id=?', (id,)):
+        if c.execute('select level from users where id=?', (user_id,)):
             row = c.fetchone()
             return row[0] if row else 0
 
@@ -52,3 +52,35 @@ def get_level(id : str):
         print('database error: {}'.format(e.args[0]))
         
     conn.close()
+
+def set_remote_id(user_id : int, user_name : str, remote_id : str):
+    conn = sqlite3.connect('pollbot.db')
+    c = conn.cursor()
+    
+    try:
+        if c.execute('select * from users where id=?', (user_id,)).fetchone():
+            print('update')
+            c.execute('update users set name=?, remoteid=? where id=?', (name, remote_id, user_id))
+        else:
+            print('insert')
+            c.execute('insert into users values (?,?,?,?)', (id, name, 0, user_id))
+
+        conn.commit()
+    except sqlite3.Error as e:
+        print('database error: {}'.format(e.args[0]))
+        
+    conn.close()
+
+def get_remote_id(user_id : str):
+    conn = sqlite3.connect('pollbot.db')
+    c = conn.cursor()
+    
+    try:
+        if c.execute('select remoteid from users where id=?', (user_id,)):
+            row = c.fetchone()
+            return row[0] if row else 0
+
+    except sqlite3.Error as e:
+        print('database error: {}'.format(e.args[0]))
+        
+    conn.close()    

@@ -22,10 +22,28 @@ import random
 
 from raidpoll import RaidPoll
 
-poll = RaidPoll('Tyranitar', datetime.datetime.now(), 'location', 'me')
-for i in range(0,20):
-    poll.add_vote(str(i), random.randrange(1,41), 0)
+poll = RaidPoll('Mega', datetime.datetime.now(), 'location', 'me', False)
 
+def add_vote(id : str, choice : int):
+    poll.add_vote(id, 'player{}'.format(id), random.randrange(1,41), 'remote_id{}'.format(i), choice)
+
+print('\n\n5 players choose 0')
+for i in range(0, 5):
+    add_vote(str(i), 0)
 print(poll.message())
-poll.all_voters[0].sort_by_level()
+
+print('\n\n3 players choose 0 again')
+for i in range(0, 3):
+    add_vote(str(i), 0)
+print(poll.message())
+
+print('\n\n2 new remote players')
+for i in range(5, 7):
+    add_vote(str(i), 1)
+    add_vote(str(i), 1)  # this shouldn't work
+print(poll.message())
+
+print('\n\nall players cancelled')
+for i in range(0, 7):
+    add_vote(str(i), 2)
 print(poll.message())

@@ -27,6 +27,7 @@ close - closes a poll
 delete - deletes a poll
 list - lists all polls
 setlevel - sets your trainer level (PM only)
+setremoteid - sets your remote id (PM only)
 """
 
 from datetime import date,datetime,timedelta
@@ -199,10 +200,11 @@ Command argument parsing
 
 def parse_args_pokemon(update, arg):
     pokemon = pokedex.capwords(arg)
-    if not pokedex.name_exists(pokemon):
+    other_options = ['Mega', 'Level2', 'Level4']
+    if not pokedex.name_exists(pokemon) and not pokemon in other_options:
         msg = '{} is not a Pokemon. Please check your spelling!'.format(pokemon)
         send_command_message(update, msg)
-        raise ValueError('Passed argument is not a Pokemon')
+        raise ValueError('Passed argument is not a Pokemon, or not in {}'.format(', '.join(other_options)))
 
     return pokemon
 
@@ -607,6 +609,10 @@ def help(bot, update):
           'Sets your trainer level to <level>.\n'\
           'Example: /setlevel 40\n\n'\
           \
+          '/setremoteid <remote_id>\n'\
+          'Sets your remote id to <remote_id>.\n'\
+          'Example: /setremoteid 0112 3581 3213\n\n'\
+          \          
           '/help\n'\
           'Shows this message\n\n\n'\
           \
@@ -701,7 +707,7 @@ def set_level(bot, update, args):
         return
 
     if len(args) != 1:
-        msg = 'Wrong format. Usage: /setlevel level. Example: /setlevel 30'
+        msg = 'Wrong format. Usage: /setlevel <level>. Example: /setlevel 30'
         send_command_message(update, msg)
         return
     
@@ -723,6 +729,27 @@ def set_level(bot, update, args):
     database.set_level(user.id, user.name, level)
     msg = '{}, your level is now {}'.format(user.name, level)    
     send_command_message(update, msg)
+
+def set_remote_id(bot, update, args):
+    log_command(update, set_remote_id.__name__, args)
+    
+    if not private_chat(update):
+        return
+
+    if len(args) != 3:
+        msg = 'Wrong format. Usage: /setremoteid <remote id>. Example: /setremoteid 0112 3581 3213'
+        send_command_message(update, msg)
+        return
+    
+    user = update.message.from_user
+
+    remote_id = '{} {} {}'.format(args[0], args[1], args[2])
+    # TODO: use reg ex to check validity
+        
+    database.set_remote_id(user.id, user.name, remote_id)
+    msg = '{}, your remote id is now {}'.format(user.name, remote_id)    
+    send_command_message(update, msg)    
+
 
 """
 ADMIN COMMANDS
@@ -874,10 +901,11 @@ def __raid_poll_vote_callback(update, poll):
     query = update.callback_query
     user = query.from_user
     level = database.get_level(query.from_user.id)
+    remote_id = database.get_remote_id(query.from_user.id)
     choice = int(query.data)
     
     try:
-        changed = poll.add_vote(user.id, user.name, level, choice)
+        changed = poll.add_vote(user.id, user.name, level, remote_id, choice)
     except KeyError as e:
         logging.info('User tried to vote for an old poll that is still open')
         return
@@ -1014,6 +1042,7 @@ dispatcher.add_handler(CommandHandler('raid', report_raid, pass_args=True))
 
 # GENERAL USER COMMANDS (PM)
 dispatcher.add_handler(CommandHandler('setlevel', set_level, pass_args=True))
+dispatcher.add_handler(CommandHandler('setremoteid', set_remote_id, pass_args=True))
 
 # ADMIN COMMANDS
 dispatcher.add_handler(CommandHandler('chatid', chat_id))

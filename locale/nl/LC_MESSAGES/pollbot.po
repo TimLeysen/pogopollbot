@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-09-02 11:45+0200\n"
-"PO-Revision-Date: 2017-09-02 11:46+0200\n"
+"POT-Creation-Date: 2021-01-19 22:55+0100\n"
+"PO-Revision-Date: 2021-01-19 22:55+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl_BE\n"
@@ -14,14 +14,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.0.3\n"
+"X-Generator: Poedit 2.4.2\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: bot.py:317
+#: bot.py:337
 msgid "time expired"
 msgstr "tijd verstreken"
 
-#: bot.py:905
+#: bot.py:951
 msgid ""
 "Welcome {}!\n"
 "In this chat you can create a raid poll by typing e.g. /poll Snorlax 14:00 "
@@ -43,53 +43,60 @@ msgstr ""
 "poll aanmaakt!\n"
 "Typ /help hier of in een privébericht naar mij voor meer informatie."
 
-#: poll.py:14 poll.py:61
+#: poll.py:33 poll.py:80
 msgid "CLOSED"
 msgstr "GESLOTEN"
 
-#: poll.py:15 poll.py:59
+#: poll.py:34 poll.py:78
 msgid "DELETED"
 msgstr "VERWIJDERD"
 
-#: poll.py:16 poll.py:57
+#: poll.py:35 poll.py:76
 msgid "FINISHED"
 msgstr "AFGELOPEN"
 
-#: raidpoll.py:72
+#: raidpoll.py:97
+msgid "Invite"
+msgstr "Uitnodiging"
+
+#: raidpoll.py:97
 msgid "Subscribe"
 msgstr "Ik kom"
 
-#: raidpoll.py:72
+#: raidpoll.py:97
 msgid "Unsubscribe"
 msgstr "Ik kom niet meer"
 
-#: raidpoll.py:73
+#: raidpoll.py:98
 msgid "Subscribed"
 msgstr "Ik kom"
 
-#: raidpoll.py:74
+#: raidpoll.py:99
 msgid "Unsubscribed"
 msgstr "Ik kom niet meer"
 
-#: raidpoll.py:115
+#: raidpoll.py:136
 msgid "Weaknesses"
 msgstr "Zwaktes"
 
-#: raidpoll.py:118 timepoll.py:87
+#: raidpoll.py:139 timepoll.py:106
 msgid "Closure reason"
 msgstr "Reden voor sluiten"
 
-#: raidpoll.py:130 timepoll.py:94
+#: raidpoll.py:152 timepoll.py:113
 msgid "Poll created by"
 msgstr "Poll aangemaakt door"
 
-#: timepoll.py:88
+#: timepoll.py:107
 msgid ""
 "You can vote for a start time here.\n"
 "{} votes will create a new raid poll."
 msgstr ""
 "Hier kan je stemmen voor een start tijd.\n"
 "Na {} stemmen wordt er automatisch een raid poll aangemaakt."
+
+#~ msgid "Remote"
+#~ msgstr "Remote"
 
 #~ msgid "ends at"
 #~ msgstr "tot"
