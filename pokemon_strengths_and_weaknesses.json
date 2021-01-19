@@ -1,0 +1,91 @@
+[
+    {
+        "type": "bug",
+		"strenghts": ["grass", "dark", "psychic"],
+		"weaknesses": ["fire", "flying", "rock"]
+    },
+    {
+        "type": "dark",
+		"strenghts": ["ghost", "psychic"],
+		"weaknesses": ["bug", "fairy", "fighting"]
+    },
+    {
+        "type": "dragon",
+		"strenghts": ["dragon"],
+		"weaknesses": ["dragon", "fairy", "ice"]
+    },
+    {
+        "type": "electric",
+		"strenghts": ["flying", "water"],
+		"weaknesses": ["ground"]
+    },	
+	{
+        "type": "fairy",
+		"strenghts": ["flying", "dark", "dragon"],
+		"weaknesses": ["poison", "steel"]
+    },
+	{
+        "type": "fighting",
+		"strenghts": ["dark", "ice", "normal", "rock", "steel"],
+		"weaknesses": ["fairy", "flying", "psychic"]
+    },
+	{
+        "type": "fire",
+		"strenghts": ["bug", "grass", "ice", "steel"],
+		"weaknesses": ["ground", "rock", "water"]
+    },
+	{
+        "type": "flying",
+		"strenghts": ["bug", "fighting", "grass"],
+		"weaknesses": ["electric", "ice", "rock"]
+    },
+	{
+        "type": "ghost",
+		"strenghts": ["ghost", "psychic"],
+		"weaknesses": ["dark", "ghost"]
+    },
+		{
+        "type": "grass",
+		"strenghts": ["ground", "rock", "water"],
+		"weaknesses": ["bug", "fire", "flying", "ice", "poison"]
+    },
+		{
+        "type": "ground",
+		"strenghts": ["electric", "fire", "poison", "rock", "steel"],
+		"weaknesses": ["grass", "ice", "water"]
+    },
+		{
+        "type": "ice",
+		"strenghts": ["dragon", "flying", "grass", "ground"],
+		"weaknesses": ["fighting", "fire", "rock", "steel"]
+    },
+		{
+        "type": "normal",
+		"strenghts": [],
+		"weaknesses": ["fighting"]
+    },
+		{
+        "type": "poison",
+		"strenghts": ["fairy", "grass"],
+		"weaknesses": ["ground", "psychic"]
+    },
+		{
+        "type": "psychic",
+		"strenghts": ["fighting", "poison"],
+		"weaknesses": ["bug", "dark", "ghost"]
+    },
+		{
+        "type": "rock",
+		"strenghts": ["bug", "fire", "flying", "ice"],
+		"weaknesses": ["fighting", "grass", "ground", "steel", "water"]
+    },
+		{
+        "type": "steel",
+		"strenghts": ["fairy", "ice", "rock"],
+		"weaknesses": ["fighting", "fire", "ground"]
+    },	{
+        "type": "water",
+		"strenghts": ["fire", "ground", "rock"],
+		"weaknesses": ["electric", "grass"]
+    }
+]
