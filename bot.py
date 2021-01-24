@@ -722,7 +722,7 @@ def set_level(update: Update, context: CallbackContext):
         send_command_message(update, msg)
         return
         
-    if level not in range(1,41):
+    if level not in range(1,51):
         msg = 'Please don\'t try to fool me {}. I\'m a smart Bulbasaur!'.format(user.name)
         send_command_message(update, msg)
         return
