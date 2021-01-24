@@ -28,10 +28,10 @@ def set_level(user_id : int, user_name : str, level : int):
     try:
         if c.execute('select * from users where id=?', (user_id,)).fetchone():
             print('update')
-            c.execute('update users set name=?, level=? where id=?', (name, level, user_id))
+            c.execute('update users set name=?, level=? where id=?', (user_name, level, user_id))
         else:
             print('insert')
-            c.execute('insert into users values (?,?,?,?)', (user_id, name, level, ''))
+            c.execute('insert into users values (?,?,?,?)', (user_id, user_name, level, ''))
 
         conn.commit()
     except sqlite3.Error as e:
@@ -60,10 +60,10 @@ def set_remote_id(user_id : int, user_name : str, remote_id : str):
     try:
         if c.execute('select * from users where id=?', (user_id,)).fetchone():
             print('update')
-            c.execute('update users set name=?, remoteid=? where id=?', (name, remote_id, user_id))
+            c.execute('update users set name=?, remoteid=? where id=?', (user_name, remote_id, user_id))
         else:
             print('insert')
-            c.execute('insert into users values (?,?,?,?)', (id, name, 0, user_id))
+            c.execute('insert into users values (?,?,?,?)', (id, user_name, 0, user_id))
 
         conn.commit()
     except sqlite3.Error as e:

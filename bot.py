@@ -38,10 +38,10 @@ import random
 import threading
 import time
 
-from telegram import CallbackQuery, Chat, ChatMember
+from telegram import CallbackQuery, Chat, ChatMember, Update
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError)
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram.ext import CallbackContext, Updater, CommandHandler, CallbackQueryHandler
 from telegram.ext import MessageHandler, Filters
 from telegram.ext.dispatcher import run_async
 import zope.event
@@ -612,7 +612,7 @@ def help(bot, update):
           '/setremoteid <remote_id>\n'\
           'Sets your remote id to <remote_id>.\n'\
           'Example: /setremoteid 0112 3581 3213\n\n'\
-          \          
+          \
           '/help\n'\
           'Shows this message\n\n\n'\
           \
@@ -700,8 +700,9 @@ def report_raid(bot, update, args):
 USER COMMANDS (PM)
 """
 
-def set_level(bot, update, args):
-    log_command(update, set_level.__name__, args)
+def set_level(update: Update, context: CallbackContext):
+    args = context.args
+    log_command(update, set_level.__name__, context.args)
     
     if not private_chat(update):
         return
@@ -730,7 +731,8 @@ def set_level(bot, update, args):
     msg = '{}, your level is now {}'.format(user.name, level)    
     send_command_message(update, msg)
 
-def set_remote_id(bot, update, args):
+def set_remote_id(update: Update, context: CallbackContext):
+    args = context.args
     log_command(update, set_remote_id.__name__, args)
     
     if not private_chat(update):
